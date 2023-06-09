@@ -1,0 +1,21 @@
+{% extends 'pydb4/base.html' %}
+{% include 'pydb4/messages.html' %}
+
+{% block content %}
+
+<center>
+    <h1>Updating: <br/> {{ product.name }}</h1>
+</center>
+<br/>
+
+<p>Confirm quantity and size are correct:</p>
+<br/>
+<form action="" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <br/>
+    <input type="submit" value="Update" class="btn btn-secondary">
+</form>
+<br/>
+
+{% endblock %}

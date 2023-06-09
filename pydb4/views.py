@@ -1,0 +1,175 @@
+from django.shortcuts import render, redirect
+from .models import Product, Vendor, vendor_details
+from django.db.models import Q
+from datetime import datetime
+import json
+from .forms import ProductForm
+from .forms import UneditableProductForm
+from django.http import HttpResponse, HttpResponseRedirect
+from django.urls import reverse
+from django.contrib import messages
+from calendar import HTMLCalendar
+import calendar
+
+
+
+
+# Create your views here.
+def all_products(request):
+    product_list = Product.objects.all()
+    return render(request, "pydb4/product_list.html", {"product_list": product_list})
+
+
+def all_vendors(request):
+    vendor_list = Vendor.objects.all()
+    return render(
+        request,
+        "pydb4/vendor_list.html",
+        {"vendor_list": vendor_list},
+    )
+
+
+def all_vendor_products(request, vendor_id):
+    products = Product.objects.filter(vendor_id=vendor_id)
+    vendor = Vendor.objects.get(id=vendor_id)
+    return render(
+        request,
+        "pydb4/vendor_products.html",
+        {"products": products, "vendor": vendor},
+    )
+
+
+def product_detail(request, item_id):
+    product = Product.objects.filter(id__exact=item_id)
+
+    return render(request, "pydb4/product_detail.html", {"product": product})
+
+
+def product_search(request):
+    if request.method == "POST":
+        searched = request.POST["searched"]
+        products = Product.objects.filter(Q(name__icontains=searched)|Q(size__icontains=searched)|Q(reference_id__icontains=searched))
+        
+        messages.success(request, "Nice search, it worked!", extra_tags='search')
+        return render(
+            request,
+            "pydb4/product_search.html",
+            {
+                "searched": searched,
+                "products": products,
+            },
+        )
+    else:
+        return render(request, "pydb4/product_list.html", {})
+
+
+def update_product(request, product_id):
+    product = Product.objects.get(pk=product_id)
+    # readonly_fields = ['name', 'reference_id', 'size', 'expiry_date', 'vendor']
+    readonly_fields = ['name', 'reference_id', 'expiry_date', 'vendor']
+    if request.method == "POST":
+        form = ProductForm(request.POST, instance=product, readonly_fields=readonly_fields)
+
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('product_detail', args=[product_id]))
+        else:
+            messages.error(request, "Form unable to be saved, please contact IT admin.")
+    else:
+        form = ProductForm(instance=product, readonly_fields=readonly_fields)
+
+    return render(request, 'pydb4/update_product.html', {"product": product, "form": form, "readonly_fields": readonly_fields})
+
+
+
+
+
+
+
+def add_product(request):
+    submitted = False
+    if request.method == "POST":
+        form = ProductForm(request.POST)
+        if form.is_valid():
+            # venue = form.save(commit=False)
+            # venue.owner = request.user.id # logged in user
+            # venue.save()
+            product = form.save()
+            submitted = True
+            messages.success(request, "Product added successfully, thank you!")
+            # return  render('/add_product?submitted=True')
+            return render(request, "pydb4/product_detail.html", {"product": product, 'submitted': submitted})   
+    else:
+        form = ProductForm()
+        if 'submitted' in request.GET:
+            submitted = True
+        return render(request, 'pydb4/add_product.html', {'form':form, 'submitted':submitted})
+
+def home(request, year=datetime.now().year, month=datetime.now().strftime('%B')):
+    name = "Guest"
+    month = month.capitalize()
+    # Convert month from name to number
+    month_number = list(calendar.month_name).index(month)
+    month_number = int(month_number)
+
+    # create a calendar
+    cal = HTMLCalendar().formatmonth(
+        year, 
+        month_number)
+    # Get current year
+    now = datetime.now()
+    current_year = now.year
+    current_day = now.day
+    
+    # Query the Events Model For Dates
+    # event_list = Event.objects.filter(
+    #     event_date__year = year,
+    #     event_date__month = month_number
+    #     )
+
+    # Get current time
+    time = now.strftime('%I:%M %p')
+    return render(request, 
+        'pydb4/home.html', {
+        "name": name,
+        "year": year,
+        "month": month,
+        "month_number": month_number,
+        "cal": cal,
+        "current_day": current_day,
+        "current_year": current_year,
+        "time":time,
+        # "event_list": event_list,
+        })
+
+
+
+# def update_event(request, event_id):
+#     event = Event.objects.get(pk=event_id)
+#     form = EventForm(request.POST or None, instance=event)
+#     if form.is_valid():
+#         form.save()
+#         return redirect('list-events')
+
+#     return render(request, 'events/update_event.html', 
+#         {'event': event,
+#         'form':form})
+
+
+# def autocompleteModel(request):
+#     if request.is_ajax():
+#         q = request.GET.get("term", "").capitalize()
+#         search_qs = Product.objects.filter(name__startswith=q)
+#         results = []
+#         # print q
+#         for r in search_qs:
+#             results.append(r.name)
+#         data = json.dumps(results)
+#     else:
+#         data = "fail"
+#     mimetype = "application/json"
+#     return HttpResponse(data, mimetype)
+
+
+
+

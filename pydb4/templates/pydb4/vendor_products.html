@@ -1,0 +1,21 @@
+{% extends 'pydb4/base.html' %}
+
+{% block content %}
+
+<h1>{{ vendor.name }}</h1>
+<br/>
+<p>Vendor ID: {{ vendor.id }}</p>
+<p>Abbreviation: {{ vendor.abbrev }}</p>
+<br/>
+<p>Products in stock from this vendor:</p>
+
+{% for item in products %}
+<strong>{{item}}</strong>
+<ul>
+    <li><a href="{% url 'product_detail' item.id %}">{{item.name}}</a></li>
+    <li>Reference ID: {{item.reference_id}}</li>
+    <li>Expiration Date: {{item.expiry_date}}</li>
+    <li>Quantity on hand: {{item.quantity_on_hand}}</li>
+</ul>
+{% endfor %}
+{% endblock %}

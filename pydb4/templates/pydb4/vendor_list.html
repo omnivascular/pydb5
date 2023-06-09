@@ -1,0 +1,16 @@
+{% extends 'pydb4/base.html' %}
+
+{% block content %}
+
+<h1>List of Vendors</h1>
+<br/>
+
+{% for vendor in vendor_list %}
+<strong>{{vendor}}</strong>
+<ul>
+    <li>Abbreviation: {{ vendor.abbrev }}</li>
+    <li>Vendor ID: {{ vendor.id }}</li>
+    <li><a href="{% url 'all-vendor-products' vendor_id=vendor.id %}">Click here to find all products from this vendor</a></li>  
+</ul>
+{% endfor %}
+{% endblock %}

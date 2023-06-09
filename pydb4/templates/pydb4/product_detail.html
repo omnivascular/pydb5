@@ -1,0 +1,65 @@
+{% extends 'pydb4/base.html' %}
+
+{% block content %}
+
+{% if product|is_iterable %}
+{% for p in product %}
+<h1>{{ p.name }}</h1>
+<br/>
+<ul>
+    <li>Size: {{ p.size }}</li>
+    <li>Reference ID: {{p.reference_id}}</li>
+    <li>Expiration Date: {{p.expiry_date}}</li>
+    <li>Quantity on hand: {{p.quantity_on_hand}}</li>
+    {% if p.is_purchased %}
+    <li>Item Status:  Purchased</li>
+    {% else %}
+    <li>Status: Item on Consignment</li>
+    {% endif %}
+    <li>Last modified: {{p.last_modified}}</li>
+    <li><a href="{% url 'update_product' product_id=p.id %}">Update product</a></li>
+
+</ul>
+{% endfor %}
+{% else %}
+
+{% if submitted %}
+<center>Your Product was added successfully!</center>
+<h1>{{ product.name }}</h1>
+<ul>
+    <li>Size: {{ product.size }}</li>
+    <li>Reference ID: {{product.reference_id}}</li>
+    <li>Expiration Date: {{product.expiry_date}}</li>
+    <li>Quantity on hand: {{product.quantity_on_hand}}</li>
+    {% if product.is_purchased %}
+    <li>Item Status:  Purchased</li>
+    {% else %}
+    <li>Status: Item on Consignment</li>
+    {% endif %}
+    <li>Last modified: {{product.last_modified}}</li>
+    <li><a href="{% url 'update_product' product_id=product.id %}">Click to update product quantity</a></li>
+
+</ul>
+
+{% elif updated %}
+<center>Your Product was updated successfully!</center>
+
+
+<h1>{{ form.name }}</h1>
+<ul>
+    <li>Size: {{ form.size }}</li>
+    <li>Reference ID: {{form.reference_id}}</li>
+    <li>Expiration Date: {{form.expiry_date}}</li>
+    <li>Quantity on hand: {{form.quantity_on_hand}}</li>
+    {% if form.is_purchased %}
+    <li>Item Status:  Purchased</li>
+    {% else %}
+    <li>Status: Item on Consignment</li>
+    {% endif %}
+    <li>Last modified: {{form.last_modified}}</li>
+
+
+</ul>
+{% endif %}
+{% endif %}
+{% endblock %}

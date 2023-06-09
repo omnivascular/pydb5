@@ -1,0 +1,30 @@
+{% extends 'pydb4/base.html' %}
+{% load custom_filters %}
+
+{% block content %}
+
+
+    <h1>Add Product</h1>
+<br/><br/>
+
+{% if submitted %}
+        Your Product Was Submitted Successfully!
+
+    {% else %}
+
+        <form action="{% url 'add_product' %}" method="POST" enctype="multipart/form-data" style="display: inline-block; float: left; clear: left; width: auto; text-align: left;">
+            {% csrf_token %}
+
+            {{ form.as_p }}
+
+            <input type="submit" value="Submit" class="btn btn-secondary">
+
+        </form>
+        {% endif %}
+
+<br/><br/>  
+
+
+
+{% endblock %}
+

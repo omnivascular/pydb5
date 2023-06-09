@@ -1,0 +1,33 @@
+{% extends 'pydb4/base.html' %}
+
+{% block content %}
+
+<div>
+{% if searched %}
+        Search results for "{{ searched }}":
+        <div>
+            
+            {% for p in products %}
+            <ul>
+                <li><strong><a href="{% url 'product_detail' p.id %}">{{ p.name }}</a></strong></li>
+                <ul>
+                <li>Expiration date: {{ p.expiry_date }}</li>
+                <li>Size: {{ p.size }}</li>
+                <li>Quantity on hand: {{ p.quantity_on_hand }}</li>
+                <li>Reference ID: {{ p.reference_id }}</li>
+                <li>Vendor: {{ p.vendor.name }}</li>
+                </ul>
+            </ul>
+            {% endfor %}
+        
+        </div>
+    {% else %}
+        <h2>Please enter search parameters to locate item.</h2>
+    {% endif %}
+</div>
+
+
+
+
+
+{% endblock %}
