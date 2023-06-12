@@ -9,3 +9,7 @@ def is_iterable(value):
         return True
     except TypeError:
         return False
+
+@register.filter
+def split_list_of_items(value):
+    return value.split('-')

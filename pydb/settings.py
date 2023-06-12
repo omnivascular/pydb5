@@ -122,9 +122,9 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
-# STATICFILES_DIRS = [
-#     r"C:\Users\omniv\OneDrive\Documents\pydb4\pydb\pydb4\static",
-# ]
+STATICFILES_DIRS = [
+    r"C:\Users\omniv\OneDrive\Documents\pydb4\pydb\pydb4\static",
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

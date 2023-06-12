@@ -9,21 +9,24 @@
             
             {% for p in products %}
             <ul>
-                <li><strong><a href="{% url 'product_detail' p.id %}">{{ p.name }}</a></strong></li>
+                <div class="product card" draggable="true">
+                <div class="card-body">
+                    <li><strong><a href="{% url 'product_detail' p.id %}">{{ p.name }}</a></strong></li>
+                </div>
                 <ul>
                 <li>Expiration date: {{ p.expiry_date }}</li>
                 <li>Size: {{ p.size }}</li>
                 <li>Quantity on hand: {{ p.quantity_on_hand }}</li>
                 <li>Reference ID: {{ p.reference_id }}</li>
                 <li>Vendor: {{ p.vendor.name }}</li>
+                </div>
                 </ul>
             </ul>
             {% endfor %}
-        
         </div>
-    {% else %}
-        <h2>Please enter search parameters to locate item.</h2>
-    {% endif %}
+{% else %}
+    <h2>Please enter search parameters to locate item.</h2>
+{% endif %}
 </div>
 
 

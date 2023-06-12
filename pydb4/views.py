@@ -12,7 +12,12 @@ from calendar import HTMLCalendar
 import calendar
 
 
+def construct_search_query(queries):
+    if len(queries) == 1:
+        return queries[0]  # Base case: return the single query
 
+    # Recursive case: combine the first query with the result of the recursive call
+    return Q(queries[0]) | construct_search_query(queries[1:])
 
 # Create your views here.
 def all_products(request):
@@ -44,21 +49,27 @@ def product_detail(request, item_id):
 
     return render(request, "pydb4/product_detail.html", {"product": product})
 
-
 def product_search(request):
     if request.method == "POST":
         searched = request.POST["searched"]
-        products = Product.objects.filter(Q(name__icontains=searched)|Q(size__icontains=searched)|Q(reference_id__icontains=searched))
-        
-        messages.success(request, "Nice search, it worked!", extra_tags='search')
-        return render(
-            request,
-            "pydb4/product_search.html",
-            {
-                "searched": searched,
-                "products": products,
-            },
-        )
+        if "-" in searched:
+            products = searched.split("-")
+            queries = [Q(name__icontains=term) | Q(size__icontains=term) | Q(reference_id__icontains=term) for term in products]
+            search_query = construct_search_query(queries)
+            results = Product.objects.filter(search_query)
+            return render(request, "pydb4/product_detail.html", {"searched": results, "products": products})
+        else:    
+            products = Product.objects.filter(Q(name__icontains=searched)|Q(size__icontains=searched)|Q(reference_id__icontains=searched))
+            
+            messages.success(request, "Nice search, it worked!", extra_tags='search')
+            return render(
+                request,
+                "pydb4/product_search.html",
+                {
+                    "searched": searched,
+                    "products": products,
+                },
+            )
     else:
         return render(request, "pydb4/product_list.html", {})
 

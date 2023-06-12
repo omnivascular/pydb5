@@ -1,0 +1,35 @@
+.product {
+  background-color: #f0f0f0;
+  padding: 10px;
+  margin-bottom: 5px;
+}
+
+.product.dragging {
+  opacity: 0.5;
+}
+
+.product.hovered {
+  background-color: #d0d0d0;
+}
+
+#cart-container {
+  position: fixed;
+  top: 100px;
+  right: 15px;
+  width: 100px;
+  height: 100px;
+  background-color: #f1f1f1;
+  border: 2px dashed #ccc;
+/*  padding: 10px;*/
+}
+
+
+.result-columns {
+    display: flex;
+}
+
+.result-column {
+    flex: 1;
+    padding: 10px;
+    /* Add any other desired styling for each column */
+}
