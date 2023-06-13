@@ -123,8 +123,13 @@ search_query = construct_search_query(queries)
 print(search_query)
 
 result = Product.objects.filter(search_query)
+print(result)
+print("type of result is: ", type(result))
 print("--- %s seconds ---" % (time.time() - start_time))
-# print(result)
+print(result[3].size)
+
+print("type of prod2 is:", type(prod2))
+print(prod2)
 
 # for x in prod3:
 #     print(x.name)

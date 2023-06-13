@@ -52,12 +52,15 @@ def product_detail(request, item_id):
 def product_search(request):
     if request.method == "POST":
         searched = request.POST["searched"]
+        print("type of searched is:", type(searched))
         if "-" in searched:
             products = searched.split("-")
+            print("type of products is:", type(products))
             queries = [Q(name__icontains=term) | Q(size__icontains=term) | Q(reference_id__icontains=term) for term in products]
             search_query = construct_search_query(queries)
             results = Product.objects.filter(search_query)
-            return render(request, "pydb4/product_detail.html", {"searched": results, "products": products})
+            print("type of results is:", type(results))
+            return render(request, "pydb4/product_search.html", {"searched": products, "products": results})
         else:    
             products = Product.objects.filter(Q(name__icontains=searched)|Q(size__icontains=searched)|Q(reference_id__icontains=searched))
             
