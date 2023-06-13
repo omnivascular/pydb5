@@ -1,3 +1,6 @@
+
+
+
 const products = document.querySelectorAll('.product');
 
 // Add event listeners for drag events

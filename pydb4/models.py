@@ -2,7 +2,8 @@ from django.db import models
 from django.template.defaultfilters import date
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-from datetime import datetime
+from datetime import datetime, date
+from dateutil.relativedelta import relativedelta
 
 
 vendor_details = {
@@ -34,10 +35,8 @@ class Vendor(models.Model):
 
     def save(self, *args, **kwargs):
         listing_vendors()
-        if self.id in vendor_details and not Vendor.objects.filter(id=self.id).exists():
+        if self.id in vendor_details:
             self.name, self.abbrev = vendor_details[self.id]
-        elif Vendor.objects.filter(id=self.id).exists():
-            pass
         else:
             raise ValidationError(
                 _("Invalid vendor ID provided, must be a vendor from records.")
@@ -58,13 +57,13 @@ class Product(models.Model):
     )
     name = models.CharField(max_length=300)
     reference_id = models.CharField(max_length=100)
-    expiry_date = models.DateField(auto_now=False, auto_now_add=False)
+    expiry_date = models.DateTimeField(auto_now=False, auto_now_add=False)
     ref_id_expiry_date = models.CharField(max_length=250, unique=True)
     is_purchased = models.BooleanField(default=True)
     size = models.CharField(max_length=60, default="N/A", blank=True)
     quantity_on_hand = models.PositiveIntegerField(default=1)
     quantity_on_order = models.PositiveIntegerField(default=0)
-    last_modified = models.DateField(auto_now=True)
+    last_modified = models.DateTimeField(auto_now=True)
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE)
 
     def save(self, *args, **kwargs):
@@ -72,12 +71,24 @@ class Product(models.Model):
         super().save(*args, **kwargs)
 
     def generate_combined_field(self):
-        return f"{self.reference_id}***{self.expiry_date}"
+        return f"{self.reference_id}***{self.expiry_date.date()}"
 
     class Meta:
         unique_together = ("reference_id", "expiry_date")
-        ordering = ["-name"]
+        # ordering = ["name"]
+        ordering = ["expiry_date"]
         indexes = [models.Index(fields=["ref_id_expiry_date", "name"])]
 
     def __str__(self) -> str:
         return self.name
+
+    @property
+    def days_until_expiry(self):
+        today = date.today()
+        # expiry_converted = [int(n) for n in self.expiry_date.split("-")]
+
+        time_remaining = relativedelta(self.expiry_date.date(), today)
+        # days_remaining = relativedelta(datetime(*expiry_converted).date(), today)
+        # days_remaining = datetime(*expiry_converted).date() - today
+        # days_remaining_str = str(days_remaining).split(",", 1)[0]
+        return time_remaining

@@ -100,7 +100,7 @@ prod4 = Product.objects.filter(
 )
 
 
-print(type(prod4))
+# print(type(prod4))
 
 
 def construct_search_query(queries):
@@ -111,7 +111,7 @@ def construct_search_query(queries):
     return Q(queries[0]) | construct_search_query(queries[1:])
 
 
-start_time = time.time()
+# start_time = time.time()
 # Example usage
 search_terms = ["test", "balloon", "everflex"]
 # queries = [Q(name__icontains=term) for term in search_terms]
@@ -120,19 +120,45 @@ queries = [
     for term in search_terms
 ]
 search_query = construct_search_query(queries)
-print(search_query)
+# print(search_query)
 
 result = Product.objects.filter(search_query)
-print(result)
-print("type of result is: ", type(result))
-print("--- %s seconds ---" % (time.time() - start_time))
-print(result[3].size)
+# print(result)
+# print("type of result is: ", type(result))
+# print("--- %s seconds ---" % (time.time() - start_time))
+# print(result[3].size)
 
-print("type of prod2 is:", type(prod2))
-print(prod2)
+# print("type of prod2 is:", type(prod2))
+# print(prod2)
 
-# for x in prod3:
-#     print(x.name)
+total = Product.objects.all()
+results = []
+
+print("\n\nItems within 3 months of expiration are: \n\n")
+for x in total:
+    datecheck = x.days_until_expiry
+    # if datecheck.years == 0 and datecheck.months < 3 and "RapidCross" in x.name:
+
+    # if "Test" in x.name:
+    #     print(x)
+    #     # x.delete()
+    #     # print("deleted obj")
+
+    if datecheck.years == 0 and datecheck.months < 3:
+        # print(x.name, x.size, x.expiry_date.date())
+        results.append(x)
+
+print(len(results))
+
+
+# x.delete()
+# print("deleted from db")
+# if "7mm-57mm" in x.size:
+#     # print("------To be deleted below------------")
+#     print(x, x.size, x.expiry_date.date())
+# x.delete()
+# print(x.expiry_date.date())
+# print(x.days_until_expiry)
 # print(x)
 # x.is_purchased = False
 # x.save(update_fields=["is_purchased"])

@@ -4,11 +4,11 @@
 
 <h1>{{ vendor.name }}</h1>
 <br/>
-<p>Vendor ID: {{ vendor.id }}</p>
-<p>Abbreviation: {{ vendor.abbrev }}</p>
-<br/>
+<p>Vendor ID: {{ vendor.id }} <br>
+Abbreviation: {{ vendor.abbrev }}</p>
+<button class="btn btn-secondary" onclick="goBack()" >Go Back</button>
+<br><br><br>
 <p>Products in stock from this vendor:</p>
-
 {% for item in products %}
 <strong>{{item}}</strong>
 <ul>

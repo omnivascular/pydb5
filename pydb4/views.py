@@ -50,17 +50,19 @@ def product_detail(request, item_id):
     return render(request, "pydb4/product_detail.html", {"product": product})
 
 def product_search(request):
+    multiple = False
     if request.method == "POST":
         searched = request.POST["searched"]
         print("type of searched is:", type(searched))
         if "-" in searched:
+            multiple = True
             products = searched.split("-")
             print("type of products is:", type(products))
             queries = [Q(name__icontains=term) | Q(size__icontains=term) | Q(reference_id__icontains=term) for term in products]
             search_query = construct_search_query(queries)
             results = Product.objects.filter(search_query)
             print("type of results is:", type(results))
-            return render(request, "pydb4/product_search.html", {"searched": products, "products": results})
+            return render(request, "pydb4/product_search.html", {"searched": products, "products": results, "multiple": multiple})
         else:    
             products = Product.objects.filter(Q(name__icontains=searched)|Q(size__icontains=searched)|Q(reference_id__icontains=searched))
             
@@ -71,6 +73,7 @@ def product_search(request):
                 {
                     "searched": searched,
                     "products": products,
+                    "multiple": multiple,
                 },
             )
     else:
@@ -95,6 +98,16 @@ def update_product(request, product_id):
     return render(request, 'pydb4/update_product.html', {"product": product, "form": form, "readonly_fields": readonly_fields})
 
 
+def expiry_check_all_products(request):
+    products = Product.objects.all()
+    results = []
+    for x in products:
+        datecheck = x.days_until_expiry
+        if datecheck.years == 0 and datecheck.months < 3:
+            print(x.name, x.size, x.expiry_date.date())
+            results.append(x)
+    return render(request, 'pydb4/expiry_check.html', {"results": results})
+    #--- unfinished above
 
 
 

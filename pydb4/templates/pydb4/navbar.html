@@ -15,6 +15,9 @@
           <li>
             <a class="nav-link" href="{% url 'add_product' %}">Add Product</a>
           </li>
+          <li>
+            <a class="nav-link" href="{% url 'expiry_check_all_products' %}">Expiring Products (< 3 months)</a>
+          </li>
         </ul>
         <form method=POST action="{% url 'product_search' %}" class="d-flex" role="search">
             {% csrf_token %}

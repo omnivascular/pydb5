@@ -18,8 +18,10 @@
             {{ form.as_p }}
 
             <input type="submit" value="Submit" class="btn btn-secondary">
+            <button class="btn btn-secondary" onclick="redirectToPage('{% url 'all-products' %}')">Back to List of Products</button>
 
         </form>
+
         {% endif %}
 
 <br/><br/>  

@@ -14,8 +14,11 @@
     {% csrf_token %}
     {{ form.as_p }}
     <br/>
-    <input type="submit" value="Update" class="btn btn-secondary">
+    <input type="submit" value="Update" class="btn btn-secondary"> 
+    <button class="btn btn-secondary" onclick="goBack()" >Cancel</button>
+
 </form>
 <br/>
 
-{% endblock %}
+
+{% endblock %} 

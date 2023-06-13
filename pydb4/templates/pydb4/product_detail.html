@@ -9,7 +9,7 @@
     <ul>
         <li>Size: {{ p.size }}</li>
         <li>Reference ID: {{p.reference_id}}</li>
-        <li>Expiration Date: {{p.expiry_date}}</li>
+        <li>Expiration Date: {{p.expiry_date.date}}</li>
         <li>Quantity on hand: {{p.quantity_on_hand}}</li>
         {% if p.is_purchased %}
             <li>Item Status:  Purchased</li>
@@ -29,7 +29,7 @@
     <ul>
         <li>Size: {{ product.size }}</li>
         <li>Reference ID: {{product.reference_id}}</li>
-        <li>Expiration Date: {{product.expiry_date}}</li>
+        <li>Expiration Date: {{product.expiry_date.date}}</li>
         <li>Quantity on hand: {{product.quantity_on_hand}}</li>
         {% if product.is_purchased %}
             <li>Item Status:  Purchased</li>
@@ -50,7 +50,7 @@
     <ul>
         <li>Size: {{ form.size }}</li>
         <li>Reference ID: {{form.reference_id}}</li>
-        <li>Expiration Date: {{form.expiry_date}}</li>
+        <li>Expiration Date: {{form.expiry_date.date}}</li>
         <li>Quantity on hand: {{form.quantity_on_hand}}</li>
         {% if form.is_purchased %}
             <li>Item Status:  Purchased</li>
@@ -63,4 +63,5 @@
     </ul>
     {% endif %}
 {% endif %}
+<button class="btn btn-secondary" onclick="goBack()" >Go Back</button>
 {% endblock %}

@@ -6,14 +6,18 @@
 <br/>
 
 {% for p in product_list %}
+<div class="product card">
+    <div class="card-body">
 <strong><a href="{% url 'product_detail' p.id %}">{{p}}</a></strong>
+</div>
 <ul>
-    <li>Expiration date: {{ p.expiry_date }}</li>
+    <li>Expiration date: {{ p.expiry_date.date }}</li>
     <li>Size: {{ p.size }}</li>
     <li>Quantity on hand: {{ p.quantity_on_hand }}</li>
 <!--     <li>Reference ID: {{ p.reference_id }}</li>
     <li>Vendor: {{ p.vendor.name }}</li> -->
     
 </ul>
+</div>
 {% endfor %}
 {% endblock %}
