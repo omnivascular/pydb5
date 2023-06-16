@@ -9,6 +9,7 @@ from datetime import datetime
 from dateutil.parser import parse
 from pydb4.models import Vendor, Product
 from django.db.models import Q
+from django.core.serializers import serialize
 import json
 import time
 
@@ -151,6 +152,13 @@ for x in total:
 print(len(results))
 
 
+check3 = Product.objects.filter(vendor_id=1)
+check3_checked = serialize("json", check3)
+
+product_data = [{"name": p.name} for p in check3]
+
+print("type is", type(product_data))
+print(product_data)
 # x.delete()
 # print("deleted from db")
 # if "7mm-57mm" in x.size:

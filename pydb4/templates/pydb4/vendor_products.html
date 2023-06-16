@@ -14,7 +14,7 @@ Abbreviation: {{ vendor.abbrev }}</p>
 <ul>
     <li><a href="{% url 'product_detail' item.id %}">{{item.name}}</a></li>
     <li>Reference ID: {{item.reference_id}}</li>
-    <li>Expiration Date: {{item.expiry_date}}</li>
+    <li>Expiration Date: {{item.expiry_date.date}}</li>
     <li>Quantity on hand: {{item.quantity_on_hand}}</li>
 </ul>
 {% endfor %}

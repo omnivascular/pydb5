@@ -123,7 +123,7 @@ USE_TZ = True
 STATIC_URL = "static/"
 
 STATICFILES_DIRS = [
-    r"C:\Users\omniv\OneDrive\Documents\pydb4\pydb\pydb4\static",
+    r"C:\Users\omniv\OneDrive\Documents\pydb4\pydb\pydb4\static\pydb4",
 ]
 
 # Default primary key field type

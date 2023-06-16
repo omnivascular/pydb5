@@ -5,11 +5,12 @@ from datetime import datetime
 import json
 from .forms import ProductForm
 from .forms import UneditableProductForm
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.urls import reverse
 from django.contrib import messages
 from calendar import HTMLCalendar
 import calendar
+from django.core import serializers
 
 
 def construct_search_query(queries):
@@ -33,15 +34,46 @@ def all_vendors(request):
         {"vendor_list": vendor_list},
     )
 
-
 def all_vendor_products(request, vendor_id):
-    products = Product.objects.filter(vendor_id=vendor_id)
-    vendor = Vendor.objects.get(id=vendor_id)
-    return render(
-        request,
-        "pydb4/vendor_products.html",
-        {"products": products, "vendor": vendor},
-    )
+    print(request.META.get('HTTP_X_REQUESTED_WITH'))
+    if request.META.get('HTTP_X_REQUESTED_WITH') == 'XMLHttpRequest':
+        products = Product.objects.filter(vendor_id=vendor_id)
+        vendor = Vendor.objects.get(id=vendor_id)
+
+        # product_data = serializers.serialize('json', products)
+        product_data = [{"name": p.name} for p in products]
+        vendor_data = {
+            'id': vendor.id,
+            'name': vendor.name,
+            # Include any other desired fields
+        }
+
+        response_data = {
+            'products': product_data,
+            'vendor': vendor_data,
+        }
+        # Convert the response data to JSON
+        # response_json = json.dumps(response_data)
+        # print(response_json)
+        return JsonResponse(response_data, safe=False)
+    else:
+        products = Product.objects.filter(vendor_id=vendor_id)
+        vendor = Vendor.objects.get(id=vendor_id)
+        return render(
+            request,
+            "pydb4/vendor_products.html",
+            {"products": products, "vendor": vendor},
+        )
+
+
+# def all_vendor_products(request, vendor_id):
+#     products = Product.objects.filter(vendor_id=vendor_id)
+#     vendor = Vendor.objects.get(id=vendor_id)
+#     return render(
+#         request,
+#         "pydb4/vendor_products.html",
+#         {"products": products, "vendor": vendor},
+#     )
 
 
 def product_detail(request, item_id):
@@ -60,11 +92,11 @@ def product_search(request):
             print("type of products is:", type(products))
             queries = [Q(name__icontains=term) | Q(size__icontains=term) | Q(reference_id__icontains=term) for term in products]
             search_query = construct_search_query(queries)
-            results = Product.objects.filter(search_query)
+            results = Product.objects.filter(search_query).order_by('expiry_date')
             print("type of results is:", type(results))
             return render(request, "pydb4/product_search.html", {"searched": products, "products": results, "multiple": multiple})
         else:    
-            products = Product.objects.filter(Q(name__icontains=searched)|Q(size__icontains=searched)|Q(reference_id__icontains=searched))
+            products = Product.objects.filter(Q(name__icontains=searched)|Q(size__icontains=searched)|Q(reference_id__icontains=searched)).order_by('expiry_date')
             
             messages.success(request, "Nice search, it worked!", extra_tags='search')
             return render(
@@ -82,8 +114,8 @@ def product_search(request):
 
 def update_product(request, product_id):
     product = Product.objects.get(pk=product_id)
-    # readonly_fields = ['name', 'reference_id', 'size', 'expiry_date', 'vendor']
-    readonly_fields = ['name', 'reference_id', 'expiry_date', 'vendor']
+    readonly_fields = ['name', 'reference_id', 'size', 'expiry_date', 'vendor']
+    # readonly_fields = ['name', 'reference_id', 'expiry_date', 'vendor']
     if request.method == "POST":
         form = ProductForm(request.POST, instance=product, readonly_fields=readonly_fields)
 
@@ -107,11 +139,6 @@ def expiry_check_all_products(request):
             print(x.name, x.size, x.expiry_date.date())
             results.append(x)
     return render(request, 'pydb4/expiry_check.html', {"results": results})
-    #--- unfinished above
-
-
-
-
 
 def add_product(request):
     submitted = False

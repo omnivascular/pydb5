@@ -1,19 +1,47 @@
 {% extends 'pydb4/base.html' %}
 
+
+
 {% block content %}
 
 <div>
 {% if searched %}
         Search results for "{{ searched }}":
+        <button onclick="openModal({{ products.0.vendor_id }})">View Vendor Products</button>
+
+    <!-- Modal -->
+    <div id="vendorModal" onscroll="myScrollFunction()" class="modal popup">
+        <div class="modal-content">
+            <button  class="close test work" id="closeButton">Close</button>
+            <script>
+function myScrollFunction() {
+    const closeButton = document.getElementById('closeButton');
+    var scrollPosition = vendorModal.scrollTop;
+
+
+    // Calculate the top position for the close button
+    var topPosition = 10 + scrollPosition + 'px';
+
+    // Set the top position of the close button
+    closeButton.style.top = topPosition;
+}
+</script>
+            <h3 id="vendorName"></h3>
+            <ul id="vendorProducts"></ul>
+        </div>
+    </div>
+
         <div>
-            
+
             {% for p in products %}
             <ul>
+
                 <div class="product card" draggable="true">
                 <div class="card-body">
                     <li><strong><a href="{% url 'product_detail' p.id %}">{{ p.name }}</a></strong></li>
                 </div>
                 <ul>
+
                 <li>Expiration date: {{ p.expiry_date.date }}</li>
                 <li>Remaining time until expiration: Years {{ p.days_until_expiry.years }} / Months {{ p.days_until_expiry.months }} / Days {{ p.days_until_expiry.days }}</li>
                 <li>Size: {{ p.size }}</li>

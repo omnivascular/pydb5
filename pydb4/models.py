@@ -6,14 +6,22 @@ from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 
 
+placeholder = ''
+
 vendor_details = {
-    1: ["Boston Scientific", "BSCI"],
-    2: ["Abbott", "ABBT"],
-    3: ["ev3/Covidien/Medtronic", "MTRNC"],
-    4: ["COOK Medical", "COOK"],
+    1: ["Boston Scientific", "BSCI", f"https://www.bostonscientific.com/en-US/search.html#q={placeholder}"],
+    2: ["Abbott", "ABBT", f"https://www.abbott.com/searchresult.html?q={placeholder}&s=true"],
+    3: ["ev3/Covidien/Medtronic", "MTRNC", f"https://www.medtronic.com/us-en/search-results.html#q={placeholder}"],
+    4: ["COOK Medical", "COOK", f"https://www.cookmedical.com/search/?#stq={placeholder}"],
     5: ["Terumo", "TRMO"],
     6: ["Coulmed", "COULMD"],
 }
+
+"""
+new vendor to add for venovo venous stent system:
+BD, Becton, Dickinson and Company
+url- https://www.bd.com/en-us/products-and-solutions/products?heroSearchValue={placeholder}&publishedAt=all-dates
+"""
 
 vendor_choices = [
     (str(key), f"{value[0]} ({value[1]})") for key, value in vendor_details.items()
@@ -32,6 +40,7 @@ class Vendor(models.Model):
     )
     name = models.CharField(max_length=200)
     abbrev = models.CharField(max_length=50)
+    # url = models.URLField(max_length=200)
 
     def save(self, *args, **kwargs):
         listing_vendors()
@@ -61,6 +70,7 @@ class Product(models.Model):
     ref_id_expiry_date = models.CharField(max_length=250, unique=True)
     is_purchased = models.BooleanField(default=True)
     size = models.CharField(max_length=60, default="N/A", blank=True)
+    barcode = models.CharField(max_length=300, default="N/A", blank=True)
     quantity_on_hand = models.PositiveIntegerField(default=1)
     quantity_on_order = models.PositiveIntegerField(default=0)
     last_modified = models.DateTimeField(auto_now=True)
