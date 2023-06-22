@@ -1,18 +1,32 @@
 from django.db import models
-from django.template.defaultfilters import date
+# from django.template.defaultfilters import date
 from django.core.exceptions import ValidationError
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.utils.translation import gettext_lazy as _
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
+import json
 
 
 placeholder = ''
 
+# # to be added when URLs fully ready
+# vendor_details = {
+#     1: ["Boston Scientific", "BSCI", f"https://www.bostonscientific.com/en-US/search.html#q={placeholder}"],
+#     2: ["Abbott", "ABBT", f"https://www.abbott.com/searchresult.html?q={placeholder}&s=true"],
+#     3: ["ev3/Covidien/Medtronic", "MTRNC", f"https://www.medtronic.com/us-en/search-results.html#q={placeholder}"],
+#     4: ["COOK Medical", "COOK", f"https://www.cookmedical.com/search/?#stq={placeholder}"],
+#     5: ["Terumo", "TRMO"],
+#     6: ["Coulmed", "COULMD"],
+# }
+
+
 vendor_details = {
-    1: ["Boston Scientific", "BSCI", f"https://www.bostonscientific.com/en-US/search.html#q={placeholder}"],
-    2: ["Abbott", "ABBT", f"https://www.abbott.com/searchresult.html?q={placeholder}&s=true"],
-    3: ["ev3/Covidien/Medtronic", "MTRNC", f"https://www.medtronic.com/us-en/search-results.html#q={placeholder}"],
-    4: ["COOK Medical", "COOK", f"https://www.cookmedical.com/search/?#stq={placeholder}"],
+    1: ["Boston Scientific", "BSCI"],
+    2: ["Abbott", "ABBT"],
+    3: ["ev3/Covidien/Medtronic", "MTRNC"],
+    4: ["COOK Medical", "COOK"],
     5: ["Terumo", "TRMO"],
     6: ["Coulmed", "COULMD"],
 }
@@ -20,6 +34,7 @@ vendor_details = {
 """
 new vendor to add for venovo venous stent system:
 BD, Becton, Dickinson and Company
+
 url- https://www.bd.com/en-us/products-and-solutions/products?heroSearchValue={placeholder}&publishedAt=all-dates
 """
 
@@ -32,6 +47,8 @@ def listing_vendors():
     print("Vendor ID  -  Vendor Name  -  Vendor Abbreviation")
     for key, value in vendor_details.items():
         print(f"{key}  -  {value[0]}  -  {value[1]}")
+
+
 
 
 class Vendor(models.Model):
@@ -56,6 +73,23 @@ class Vendor(models.Model):
         return self.name
 
 
+class AuditLog(models.Model):
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+    field_name = models.CharField(max_length=255)
+    old_value = models.CharField(max_length=255)
+    new_value = models.CharField(max_length=255)
+    modified_date = models.DateTimeField()
+
+    def get_quantity_field(self):
+        return f"Quantity on hand" if 'quantity_on_hand' in self.field_name else "Not yet defined field name" 
+
+    # p = Product.objects.filter(pk=1)
+
+    # def __str__(self) -> str:
+    #     return f"Value changed: {self.get_field_name()}, Old value: {self.old_value}, New value: {self.new_value}, Date changed: {self.modified_date}"
+
 class Product(models.Model):
     id = models.BigAutoField(
         auto_created=True,
@@ -70,14 +104,35 @@ class Product(models.Model):
     ref_id_expiry_date = models.CharField(max_length=250, unique=True)
     is_purchased = models.BooleanField(default=True)
     size = models.CharField(max_length=60, default="N/A", blank=True)
-    barcode = models.CharField(max_length=300, default="N/A", blank=True)
+    barcode = models.CharField(max_length=300, default="N/A", blank=True, null=True)
     quantity_on_hand = models.PositiveIntegerField(default=1)
     quantity_on_order = models.PositiveIntegerField(default=0)
     last_modified = models.DateTimeField(auto_now=True)
+
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE)
 
     def save(self, *args, **kwargs):
         self.ref_id_expiry_date = self.generate_combined_field()
+        if self.pk:
+            # Retrieve the existing object from the database
+            old_instance = Product.objects.get(pk=self.pk)
+
+            # Compare the fields and record changes
+            for field in self._meta.fields:
+                field_name = field.name
+                old_value = getattr(old_instance, field_name)
+                new_value = getattr(self, field_name)
+
+                if old_value != new_value:
+                    # Create an audit log entry for each changed field
+                    AuditLog.objects.create(
+                        content_object=self,
+                        field_name=field_name,
+                        old_value=str(old_value),
+                        new_value=str(new_value),
+                        modified_date=datetime.now()
+                    )
+
         super().save(*args, **kwargs)
 
     def generate_combined_field(self):
@@ -102,3 +157,29 @@ class Product(models.Model):
         # days_remaining = datetime(*expiry_converted).date() - today
         # days_remaining_str = str(days_remaining).split(",", 1)[0]
         return time_remaining
+
+"""
+
+product_id = 1  # Assuming the product ID you want to retrieve the audit logs for
+
+# Retrieve the audit logs for the specified product
+queryset = AuditLog.objects.filter(object_id=product_id).order_by('date')
+
+# Get the product name
+product_name = queryset.first().content_object.name  # Assuming the product has a "name" field
+
+# Collate the audit logs into a dictionary
+audit_logs = {
+    'product_name': product_name,
+    'audit_logs': [
+        {
+            'date': audit_log.date,
+            'field_name': audit_log.get_field_name(),
+            'old_value': audit_log.old_value,
+            'new_value': audit_log.new_value,
+        }
+        for audit_log in queryset
+    ]
+}
+
+"""

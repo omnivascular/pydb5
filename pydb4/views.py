@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .models import Product, Vendor, vendor_details
+from .models import Product, Vendor, vendor_details, AuditLog
 from django.db.models import Q
 from datetime import datetime
 import json
@@ -11,7 +11,16 @@ from django.contrib import messages
 from calendar import HTMLCalendar
 import calendar
 from django.core import serializers
+from django.views.decorators.cache import cache_control
 
+
+def construct_search_query_alternate(queries):
+    if len(queries) == 1:
+        return queries[0]  # Base case: return the single query
+
+    # Recursive case: combine the first query with the result of the recursive call
+    # return Q(queries[0]) | construct_search_query(queries[1:])
+    return Q(queries[0]) & construct_search_query(queries[1:])
 
 def construct_search_query(queries):
     if len(queries) == 1:
@@ -19,6 +28,7 @@ def construct_search_query(queries):
 
     # Recursive case: combine the first query with the result of the recursive call
     return Q(queries[0]) | construct_search_query(queries[1:])
+
 
 # Create your views here.
 def all_products(request):
@@ -75,26 +85,41 @@ def all_vendor_products(request, vendor_id):
 #         {"products": products, "vendor": vendor},
 #     )
 
-
+@cache_control(no_cache=True, must_revalidate=True)
 def product_detail(request, item_id):
     product = Product.objects.filter(id__exact=item_id)
+    records = AuditLog.objects.filter(Q(object_id=item_id) & Q(field_name="quantity_on_hand")).order_by('modified_date')
+    for r in records:
+        print(r.content_object)
+        print(r.object_id)
+        print(r.field_name)
+    return render(request, "pydb4/product_detail.html", {"product": product, "records": records},)
 
-    return render(request, "pydb4/product_detail.html", {"product": product})
-
+@cache_control(no_cache=True, must_revalidate=True)
 def product_search(request):
     multiple = False
     if request.method == "POST":
         searched = request.POST["searched"]
         print("type of searched is:", type(searched))
-        if "-" in searched:
+        if "," in searched:
             multiple = True
-            products = searched.split("-")
-            print("type of products is:", type(products))
-            queries = [Q(name__icontains=term) | Q(size__icontains=term) | Q(reference_id__icontains=term) for term in products]
-            search_query = construct_search_query(queries)
-            results = Product.objects.filter(search_query).order_by('expiry_date')
-            print("type of results is:", type(results))
-            return render(request, "pydb4/product_search.html", {"searched": products, "products": results, "multiple": multiple})
+            products = [s.strip().lower() for s in searched.split(",")]
+            c = ";"
+            checking = any(c in item for item in products)
+            if checking:
+                present = [s for s in products if ";" in s]
+                absent = [s for s in products if ";" not in s]
+                queries_1 = [Q(name__icontains=term) | Q(size__icontains=term) | Q(reference_id__icontains=term) for term in absent]
+                search_query_1 = construct_search_query(queries_1)
+                queries_2 = [Q(name__icontains=term) | Q(size__icontains=term) | Q(reference_id__icontains=term) for term.split(";") in present]
+                search_query_2 = construct_
+            else:
+                print("type of products is:", type(products))
+                queries = [Q(name__icontains=term) | Q(size__icontains=term) | Q(reference_id__icontains=term) for term in products]
+                search_query = construct_search_query(queries)
+                results = Product.objects.filter(search_query).order_by('expiry_date')
+                print("type of results is:", type(results))
+                return render(request, "pydb4/product_search.html", {"searched": products, "products": results, "multiple": multiple})
         else:    
             products = Product.objects.filter(Q(name__icontains=searched)|Q(size__icontains=searched)|Q(reference_id__icontains=searched)).order_by('expiry_date')
             
@@ -111,7 +136,7 @@ def product_search(request):
     else:
         return render(request, "pydb4/product_list.html", {})
 
-
+@cache_control(no_cache=True, must_revalidate=True)
 def update_product(request, product_id):
     product = Product.objects.get(pk=product_id)
     readonly_fields = ['name', 'reference_id', 'size', 'expiry_date', 'vendor']
@@ -129,7 +154,7 @@ def update_product(request, product_id):
 
     return render(request, 'pydb4/update_product.html', {"product": product, "form": form, "readonly_fields": readonly_fields})
 
-
+@cache_control(no_cache=True, must_revalidate=True)
 def expiry_check_all_products(request):
     products = Product.objects.all()
     results = []
@@ -140,6 +165,7 @@ def expiry_check_all_products(request):
             results.append(x)
     return render(request, 'pydb4/expiry_check.html', {"results": results})
 
+@cache_control(no_cache=True, must_revalidate=True)
 def add_product(request):
     submitted = False
     if request.method == "POST":
@@ -159,6 +185,7 @@ def add_product(request):
             submitted = True
         return render(request, 'pydb4/add_product.html', {'form':form, 'submitted':submitted})
 
+@cache_control(no_cache=True, must_revalidate=True)
 def home(request, year=datetime.now().year, month=datetime.now().strftime('%B')):
     name = "Guest"
     month = month.capitalize()

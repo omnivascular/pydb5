@@ -8,15 +8,47 @@
 </center>
 <br/>
 
-<p>Confirm quantity and size are correct:</p>
+<p>Confirm quantity:</p>
 <br/>
 <form action="" method="POST" enctype="multipart/form-data">
     {% csrf_token %}
-    {{ form.as_p }}
+    <!-- {{ form.as_p }} -->
+
+    {% for field in form %}
+        {% if field.name != 'quantity_on_hand' %}<p>{{field.label}} {{field}}</p>{% endif %}
+        {% if field.name == 'quantity_on_hand' %}
+            <p><div id="quantity_update" class="quantity-input">
+                {{ form.quantity_on_hand }}
+                <button id="increment" type="button" class="quantity-btn increment">+</button>
+                <button id="decrement" type="button" class="quantity-btn decrement">-</button>
+                </div>
+
+            </p>
+        {% endif %}
+     
+    {% endfor %}
     <br/>
     <input type="submit" value="Update" class="btn btn-secondary"> 
     <button class="btn btn-secondary" onclick="goBack()" >Cancel</button>
+<script>
+$(document).ready(function() {
+  // Function to increment the value
+  $('.increment').click(function() {
+    var input = $('#id_quantity_on_hand');
+    var value = parseInt(input.val()) || 0;
+    input.val(value + 1);
+  });
 
+  // Function to decrement the value
+  $('.decrement').click(function() {
+    var input = $('#id_quantity_on_hand');
+    var value = parseInt(input.val()) || 0;
+    if (value > 0) {
+      input.val(value - 1);
+    }
+  });
+});
+</script>
 </form>
 <br/>
 

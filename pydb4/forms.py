@@ -35,7 +35,7 @@ class ProductForm(ModelForm):
 		'name': 'Product Name:',
 		'reference_id': 'Reference ID:',
 		'expiry_date': 'Expiration Date:',
-		'size': 'Size',
+		'size': 'Size:',
 		'quantity_on_hand': 'Quantity currently on hand:',
 		'vendor': 'Vendor ID:',		
 		}
@@ -44,7 +44,17 @@ class ProductForm(ModelForm):
 			'reference_id': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Reference ID'}),
 			'expiry_date': forms.DateInput(attrs={'class':'form-select', 'placeholder':'Expiration Date: (MM/DD/YYYY)'}, format="%m/%d/%Y"),
 			'size': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Size'}),
-			'quantity_on_hand': forms.NumberInput(attrs={'class':'form-control', 'placeholder':'Quantity available'}),
+			# 'quantity_on_hand': forms.NumberInput(attrs={'class':'form-control', 'placeholder':'Quantity available'}),
+			'quantity_on_hand': forms.NumberInput(
+			    attrs={
+			        'class': 'form-control',
+			        'placeholder': 'Quantity available',
+			        'min': '0',  # Minimum value allowed for the input
+			        'step': '1',  # Step value for increment and decrement
+			        'id': 'id_quantity_on_hand',
+			    },
+			),
+
 			'vendor': forms.Select(attrs={'class':'form-select', 'placeholder':'Vendor'}),
 		}
 
