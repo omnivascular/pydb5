@@ -102,6 +102,7 @@ def product_search(request):
         searched = request.POST["searched"]
         print("type of searched is:", type(searched))
         if "," in searched:
+            # ---- turn this part into separate by ; OR  ---> then handle each part separate
             multiple = True
             products = [s.strip().lower() for s in searched.split(",")]
             c = ";"
@@ -111,8 +112,16 @@ def product_search(request):
                 absent = [s for s in products if ";" not in s]
                 queries_1 = [Q(name__icontains=term) | Q(size__icontains=term) | Q(reference_id__icontains=term) for term in absent]
                 search_query_1 = construct_search_query(queries_1)
-                queries_2 = [Q(name__icontains=term) | Q(size__icontains=term) | Q(reference_id__icontains=term) for term.split(";") in present]
-                search_query_2 = construct_
+                results_1 = Product.objects.filter(search_query_1).order_by('expiry_date')
+                t = present.split(";")
+                queries_2 = [Q(name__icontains=term) | Q(size__icontains=term) | Q(reference_id__icontains=term) for term in t]
+                search_query_2 = construct_search_query_alternate(queries_2)
+                combined_q = []
+                combined_q.extend(search_query_1)
+                combined_q.extend(search_query_2)
+                combined_q = Q()
+                for q in combined_q_list:
+                    combined_q |= q
             else:
                 print("type of products is:", type(products))
                 queries = [Q(name__icontains=term) | Q(size__icontains=term) | Q(reference_id__icontains=term) for term in products]
