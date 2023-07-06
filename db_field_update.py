@@ -38,6 +38,15 @@ def construct_search_query(queries):
     return Q(queries[0]) | construct_search_query(queries[1:])
 
 
+# this other construct query function now finds the presence of 2+ items together
+def construct_search_query2(queries):
+    if len(queries) == 1:
+        return queries[0]  # Base case: return the single query
+
+    # Recursive case: combine the first query with the result of the recursive call
+    return Q(queries[0]) & construct_search_query(queries[1:])
+
+
 # Choose vendor
 # vendor = Vendor.objects.get(id=1)
 # vendor = Vendor.objects.get(id=2)
@@ -58,7 +67,7 @@ search_query = construct_search_query(queries)
 # print(search_query)
 
 result = Product.objects.filter(search_query)
-print(len([r.name for r in result]))
+# print(len([r.name for r in result]))
 
 queries2 = [
     Q(name__icontains=term) | Q(size__icontains=term) | Q(reference_id__icontains=term)
@@ -72,14 +81,14 @@ search = []
 string = ";"
 resulting = any(string in item for item in search_terms2)
 
-if resulting:
-    r1 = [s for s in search_terms3.split(",") if ";" not in s]
-    r2 = [s for s in search_terms3.split(",") if ";" in s]
-    print(r1)
-    print(r2)
+# if resulting:
+#     r1 = [s for s in search_terms3.split(",") if ";" not in s]
+#     r2 = [s for s in search_terms3.split(",") if ";" in s]
+#     print(r1)
+#     print(r2)
 
-search_terms9 = ["balloon", "test"]
-search_terms10 = ["catheter", "test"]
+search_terms9 = ["catheter", "test"]
+search_terms10 = ["balloon;extremely", "balloon"]
 
 
 # this other construct query function now finds the presence of 2+ items together
@@ -100,13 +109,28 @@ q4 = [
     Q(name__icontains=term) | Q(size__icontains=term) | Q(reference_id__icontains=term)
     for term in search_terms10
 ]
-search_query5 = construct_search_query2(q3)
-# print(search_query)
+search_query5 = construct_search_query2(q3)  # 'and' in recursive
+search_query6 = construct_search_query(q4)  # 'or' in recursive return statement
+
+
 print("-----------------------")
 r5 = Product.objects.filter(search_query5)
+r6 = Product.objects.filter(search_query6)
 # print(len([r.name for r in result]))
-print(r5)
 
+res = [r.name for r in r5 if r in r6]
+for r in res:
+    print(r)
+
+# search_terms = ["balloon", "test", "new"]
+# qtwo = [
+#     Q(name__icontains=term) | Q(size__icontains=term) | Q(reference_id__icontains=term)
+#     for term in search_terms
+# ]
+# query = construct_search_query2(qtwo)
+# resulted = Product.objects.filter(query)
+# for r in resulted:
+#     print(r.name)
 
 # result4 = Product.objects.filter(
 #     Q(name__icontains="balloon") & Q(name__icontains="test")

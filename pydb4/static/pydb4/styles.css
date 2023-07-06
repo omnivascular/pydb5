@@ -66,7 +66,7 @@
 
 #history.hist.tested.next {
     cursor: pointer;
-    color: indianred;
+    color:  #FFA500;
 }
 
 #history.hist.tested.next:hover {

@@ -3,7 +3,13 @@
 {% block content %}
 
 <br><br><br>
-<center>Welcome to the Inventory Management Site of Omni Vascular Diabetes and Wound Care Center</center>
+
+{% if user.is_authenticated %}
+<center>Welcome {{user}}! <br><p>You have reached the Inventory Management Site of Omni Vascular Diabetes and Wound Care Center </p></center>
+
+{% else %}
+<center>You have reached the Inventory Management Site of Omni Vascular Diabetes and Wound Care Center</center>
+{% endif %}
 <br><br><br><br><br>
 <center>You are visiting on: {{time}}, {{month}} {{current_day}}, {{year}}</center>
 

@@ -1,9 +1,10 @@
 from django.shortcuts import render, redirect
 from .models import Product, Vendor, vendor_details, AuditLog
+from django.contrib.auth.models import User
 from django.db.models import Q
 from datetime import datetime
 import json
-from .forms import ProductForm
+from .forms import ProductForm, ProcedureForm
 from .forms import UneditableProductForm
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.urls import reverse
@@ -12,6 +13,9 @@ from calendar import HTMLCalendar
 import calendar
 from django.core import serializers
 from django.views.decorators.cache import cache_control
+import traceback
+import qrcode as qr
+import re
 
 
 def construct_search_query_alternate(queries):
@@ -85,52 +89,55 @@ def all_vendor_products(request, vendor_id):
 #         {"products": products, "vendor": vendor},
 #     )
 
-@cache_control(no_cache=True, must_revalidate=True)
+# @cache_control(no_cache=True, must_revalidate=True)
 def product_detail(request, item_id):
-    product = Product.objects.filter(id__exact=item_id)
+    # product = Product.objects.filter(id__exact=item_id)
+    product = Product.objects.get(id=item_id)
+    try:
+        auditor = AuditLog.objects.get(id=product.employee.id)
+        modifier = User.objects.get(id=auditor.omni_employee)
+        img = qr.make(product.barcode)
+        img.save(f'{item_id}-QR-code.png')
+    except AttributeError:
+        print('this one needs admin as default auditor')
+        auditor = AuditLog.objects.get(id=1)
+        modifier = User.objects.get(id=auditor.omni_employee)
+        img = ''
+    # modifier = ''
+    print(product, auditor, modifier)
+    print('here at line 101, in views.py')
     records = AuditLog.objects.filter(Q(object_id=item_id) & Q(field_name="quantity_on_hand")).order_by('modified_date')
-    for r in records:
-        print(r.content_object)
-        print(r.object_id)
-        print(r.field_name)
-    return render(request, "pydb4/product_detail.html", {"product": product, "records": records},)
+    # for r in records:
+    #     print(r.content_object)
+    #     print(r.object_id)
+    #     print(r.field_name)
+    return render(request, "pydb4/product_detail.html", {"product": product, "records": records, "modifier": modifier, "pic": img})
 
-@cache_control(no_cache=True, must_revalidate=True)
+# @cache_control(no_cache=True, must_revalidate=True)
 def product_search(request):
-    multiple = False
+    multiple = ''
     if request.method == "POST":
         searched = request.POST["searched"]
         print("type of searched is:", type(searched))
-        if "," in searched:
-            # ---- turn this part into separate by ; OR  ---> then handle each part separate
-            multiple = True
+        if "," in searched and ';' not in searched:
+            multiple = ','
             products = [s.strip().lower() for s in searched.split(",")]
-            c = ";"
-            checking = any(c in item for item in products)
-            if checking:
-                present = [s for s in products if ";" in s]
-                absent = [s for s in products if ";" not in s]
-                queries_1 = [Q(name__icontains=term) | Q(size__icontains=term) | Q(reference_id__icontains=term) for term in absent]
-                search_query_1 = construct_search_query(queries_1)
-                results_1 = Product.objects.filter(search_query_1).order_by('expiry_date')
-                t = present.split(";")
-                queries_2 = [Q(name__icontains=term) | Q(size__icontains=term) | Q(reference_id__icontains=term) for term in t]
-                search_query_2 = construct_search_query_alternate(queries_2)
-                combined_q = []
-                combined_q.extend(search_query_1)
-                combined_q.extend(search_query_2)
-                combined_q = Q()
-                for q in combined_q_list:
-                    combined_q |= q
-            else:
-                print("type of products is:", type(products))
-                queries = [Q(name__icontains=term) | Q(size__icontains=term) | Q(reference_id__icontains=term) for term in products]
-                search_query = construct_search_query(queries)
-                results = Product.objects.filter(search_query).order_by('expiry_date')
-                print("type of results is:", type(results))
-                return render(request, "pydb4/product_search.html", {"searched": products, "products": results, "multiple": multiple})
+            print("type of products is:", type(products))
+            queries = [Q(name__icontains=term) | Q(size__icontains=term) | Q(reference_id__icontains=term) | Q(barcode__icontains=term) for term in products]
+            search_query = construct_search_query(queries)
+            results = Product.objects.filter(search_query).order_by('expiry_date')
+            print("type of results is:", type(results))
+            return render(request, "pydb4/product_search.html", {"searched": products, "products": results, "multiple": multiple})
+        elif ";" in searched and ',' not in searched:
+            multiple = ';'
+            products = [s.strip().lower() for s in searched.split(";")]
+            queries = [Q(name__icontains=term) | Q(size__icontains=term) | Q(reference_id__icontains=term) for term in products]
+            search_query = construct_search_query_alternate(queries)
+            results = Product.objects.filter(search_query).order_by('expiry_date')
+            print("type of results is:", type(results))
+            return render(request, "pydb4/product_search.html", {"searched": products, "products": results, "multiple": multiple})
         else:    
-            products = Product.objects.filter(Q(name__icontains=searched)|Q(size__icontains=searched)|Q(reference_id__icontains=searched)).order_by('expiry_date')
+            products = Product.objects.filter(Q(name__icontains=searched)|Q(size__icontains=searched)|Q(reference_id__icontains=searched) | Q(barcode__icontains=searched)).order_by('expiry_date')
             
             messages.success(request, "Nice search, it worked!", extra_tags='search')
             return render(
@@ -145,17 +152,32 @@ def product_search(request):
     else:
         return render(request, "pydb4/product_list.html", {})
 
-@cache_control(no_cache=True, must_revalidate=True)
+# @cache_control(no_cache=True, must_revalidate=True)
 def update_product(request, product_id):
     product = Product.objects.get(pk=product_id)
+    updated = False
     readonly_fields = ['name', 'reference_id', 'size', 'expiry_date', 'vendor']
     # readonly_fields = ['name', 'reference_id', 'expiry_date', 'vendor']
     if request.method == "POST":
+        print(request)
         form = ProductForm(request.POST, instance=product, readonly_fields=readonly_fields)
 
         if form.is_valid():
-            form.save()
-            return HttpResponseRedirect(reverse('product_detail', args=[product_id]))
+            result = form.save(commit=False)
+            try:
+                result.employee = User.objects.get(pk=request.user.id) #logged in user
+            except error as e:
+                print('error here')
+                traceback.print_exc()
+            print('For updating product, User ID: ', request.user.id)
+            result.save()
+            updated = True
+            redirect_url = reverse('product_detail', args=[product_id])
+            if updated:
+                redirect_url += '?redirect_flag=true'
+            print(result.employee.username)
+            redirect_url += f'?user={result.employee.username}'
+            return HttpResponseRedirect(redirect_url)
         else:
             messages.error(request, "Form unable to be saved, please contact IT admin.")
     else:
@@ -163,7 +185,7 @@ def update_product(request, product_id):
 
     return render(request, 'pydb4/update_product.html', {"product": product, "form": form, "readonly_fields": readonly_fields})
 
-@cache_control(no_cache=True, must_revalidate=True)
+# @cache_control(no_cache=True, must_revalidate=True)
 def expiry_check_all_products(request):
     products = Product.objects.all()
     results = []
@@ -174,7 +196,50 @@ def expiry_check_all_products(request):
             results.append(x)
     return render(request, 'pydb4/expiry_check.html', {"results": results})
 
-@cache_control(no_cache=True, must_revalidate=True)
+def procedure(request):
+    submitted = False
+    if request.method == "POST":
+        print("POST here")
+        form = ProcedureForm(request.POST)
+        # major edits to do here = need to have product objects either prepared or already passed
+        pattern = r"\r\n|\n|,"  # Regular expression pattern to match "\r\n" or "\n"
+        # result = re.split(pattern, string)
+        barcodes_used = re.split(pattern, request.POST.get('products_used'))
+        # barcodes_used = request.POST.get('products_used').split(',')
+        # products = list(set([Product.objects.filter(barcode__exact=b) for b in barcodes_used]))
+        # barcodes_used = products_used.split(',')
+        queries = [Q(barcode__icontains=term) for term in barcodes_used]
+        search_query = construct_search_query(queries)
+        results = Product.objects.filter(search_query).order_by('expiry_date')
+        print('length of results queryset:')
+        print(len(results))
+        for r in results:
+            print(f"{r.name}-{r.expiry_date}")
+        # print(products)
+        # print(len(products))
+        print('.items: ', request.POST.items)
+        print('original products used field: ', barcodes_used)
+        # print('processed products used field', products_used)
+        print('patient: ', request.POST.get('patient'))
+        print('procedure: ', request.POST.get('procedure'))
+        if form.is_valid():
+            print(type(form))
+            print('it is valid')
+
+            form.save()
+            submitted = True
+            return render(request, 'pydb4/product_list.html', {'product_list': results})
+        else:
+            print(form.is_valid())
+            print(form.errors)
+            print('sorry not authorized, get away.')
+            return render(request, 'pydb4/procedure_event.html', {'form': form})    
+    else:
+        form = ProcedureForm()
+        print('GET here', request)
+        return render(request, 'pydb4/procedure_event.html', {'form': form})
+
+# @cache_control(no_cache=True, must_revalidate=True)
 def add_product(request):
     submitted = False
     if request.method == "POST":
@@ -183,10 +248,18 @@ def add_product(request):
             # venue = form.save(commit=False)
             # venue.owner = request.user.id # logged in user
             # venue.save()
-            product = form.save()
+            product = form.save(commit=False)
+            try: 
+                print('For adding product, User ID: ', request.user.id)
+                product.employee = User.objects.get(pk=request.user.id) #logged in user
+                # product.employee = request.user.id
+                product.save()
+            except:
+                traceback.print_exc()
             submitted = True
-            messages.success(request, "Product added successfully, thank you!")
+            messages.success(request, "Product added successfully.")
             # return  render('/add_product?submitted=True')
+            print(type(product))
             return render(request, "pydb4/product_detail.html", {"product": product, 'submitted': submitted})   
     else:
         form = ProductForm()
@@ -194,7 +267,7 @@ def add_product(request):
             submitted = True
         return render(request, 'pydb4/add_product.html', {'form':form, 'submitted':submitted})
 
-@cache_control(no_cache=True, must_revalidate=True)
+# @cache_control(no_cache=True, must_revalidate=True)
 def home(request, year=datetime.now().year, month=datetime.now().strftime('%B')):
     name = "Guest"
     month = month.capitalize()

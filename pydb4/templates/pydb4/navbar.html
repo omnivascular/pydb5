@@ -7,21 +7,36 @@
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'all-vendors' %}">Vendor List</a>
+            <a class="nav-link" href="{% url 'all-vendors' %}">Vendors</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'all-products' %}">Product List</a>
+            <a class="nav-link" href="{% url 'all-products' %}">Products</a>
           </li>
-          <li>
+          <li class="nav-item">
             <a class="nav-link" href="{% url 'add_product' %}">Add Product</a>
           </li>
-          <li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'procedure' %}">Procedure Event</a>
+          </li>          
+          <li class="nav-item">
             <a class="nav-link" href="{% url 'expiry_check_all_products' %}">Expiring Products (< 3 months)</a>
           </li>
+          {% if user.is_authenticated %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'logout' %}">Logout</a>
+          </li>
+          {% else %}
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'register_user' %}">Register</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'login' %}">Login</a>
+          </li>
+          {% endif %}
         </ul>
         <form method=POST action="{% url 'product_search' %}" class="d-flex" role="search">
             {% csrf_token %}
-          <input class="form-control me-2" type="search" placeholder="Product/size/ref:" aria-label="Search" name="searched">
+          <input class="form-control me-2" type="search" placeholder="Looking for?" aria-label="Search" name="searched">
           <button class="btn btn-outline-success" type="submit">Search</button>
         </form>
       </div>

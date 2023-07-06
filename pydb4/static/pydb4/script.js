@@ -21,15 +21,20 @@ var historyButton = document.getElementById("history");
 var itemEdits = document.getElementById("modTable");
 
 
-historyButton.addEventListener("mouseover", function() {
-  itemEdits.style.display = "block";
-});
+if (historyButton && itemEdits) {
 
-historyButton.addEventListener("mouseout", function() {
-  setTimeout(function() {
-    itemEdits.style.display = "none";
-  }, 3000);
-});
+  historyButton.addEventListener("mouseover", function() {
+    itemEdits.style.display = "block";
+  });
+
+  historyButton.addEventListener("mouseout", function() {
+    setTimeout(function() {
+      itemEdits.style.display = "none";
+    }, 3000);
+  });
+}
+
+
 
 // const products = document.querySelectorAll('.product');
 // // Add event listeners for drag events

@@ -1,7 +1,8 @@
 from django import forms
-from django.forms import ModelForm, SelectDateWidget
+from django.forms import ModelForm, SelectDateWidget, ModelMultipleChoiceField, Textarea
 # from .models import Venue, Event
-from .models import Product, Vendor, vendor_details
+from .models import Product, Vendor, vendor_details, Procedure
+import re
 
 # Admin SuperUser Event Form
 # class EventFormAdmin(ModelForm):
@@ -25,8 +26,53 @@ from .models import Product, Vendor, vendor_details
 # 			'description': forms.Textarea(attrs={'class':'form-control', 'placeholder':'Description'}),
 # 		}
 
-# Product Form
+class CleanedTextAreaField(ModelMultipleChoiceField):
+	widget = Textarea(attrs={'cols': 100, 'class':'form-control', 'placeholder':'Scan each barcode of product used in procedure:'})
+	def clean(self, value):
+		if value is not None:
+			value = [item.strip() for item in value.split(r'\r\n')]
+		return super().clean(value)
 
+class ProcedureForm(ModelForm):
+	class Meta:
+		model = Procedure
+		fields = ('procedure', 'patient', 'products_used', 'choice_field')
+		labels = {
+		'procedure': "Procedure performed:",
+		'patient': "Patient performed upon:",
+		'products_used': "Products used in procedure:",
+		'choice_field': "Select action to perform on items input:",
+		}
+
+		widgets = {
+		'procedure': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Procedure:'}),
+		'patient': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Patient:'}),
+		'products_used': forms.Textarea(attrs={'cols': 100, 'class':'form-control', 'placeholder':'Scan each barcode of product used in procedure:'}),
+
+		}
+	CHOICES = [("1", "Add to Inventory"), ("2", "Delete from Inventory")]
+	choice_field = forms.ChoiceField(widget=forms.RadioSelect(attrs={"required": True}), choices=CHOICES)
+	# products_used = CleanedTextAreaField(required=True, queryset=Product.objects.filter(), to_field_name='barcode')
+	# products_used = forms.CharField(widget=forms.Textarea, attrs={'class':'form-control', 'placeholder':'Patient:'})
+	def clean_products_used(self):
+		product_codes = self.cleaned_data.get('products_used')
+		if product_codes:
+		    product_codes_list = [code.strip() for code in product_codes.split('\r\n')]
+		    print(product_codes_list)
+		    return product_codes_list
+		return []
+
+	# def clean(self):
+	# 	cleaned_data = super().clean()
+	# 	products_used = cleaned_data.get('products_used', '')
+	# 	pattern = r"\r\n|\n|,"
+	# 	products_list = [r.strip() for r in re.split(pattern, products_used)]
+	# 	# products_list = products_used.split('\n')  # Split the field value by newlines to create a list
+	# 	cleaned_data['products_used'] = products_list
+	# 	return cleaned_data
+
+
+# Product Form
 class ProductForm(ModelForm):
 	class Meta:
 		model = Product

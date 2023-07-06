@@ -6,6 +6,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.utils.translation import gettext_lazy as _
 from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
+from django.contrib.auth.models import User
 import json
 
 
@@ -72,6 +73,14 @@ class Vendor(models.Model):
     def __str__(self) -> str:
         return self.name
 
+# class OmniUser(models.Model):
+#     first_name = models.CharField(max_length=60)
+#     last_name = models.CharField(max_length=60)
+#     email = models.EmailField('User Email')
+
+#     def __str__(self):
+#         return self.first_name + ' ' + self.last_name
+
 
 class AuditLog(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
@@ -81,7 +90,8 @@ class AuditLog(models.Model):
     old_value = models.CharField(max_length=255)
     new_value = models.CharField(max_length=255)
     modified_date = models.DateTimeField()
-
+    omni_employee = models.PositiveIntegerField("Employee last edited", blank=False,default=1)
+ 
     def get_quantity_field(self):
         return f"Quantity on hand" if 'quantity_on_hand' in self.field_name else "Not yet defined field name" 
 
@@ -108,7 +118,7 @@ class Product(models.Model):
     quantity_on_hand = models.PositiveIntegerField(default=1)
     quantity_on_order = models.PositiveIntegerField(default=0)
     last_modified = models.DateTimeField(auto_now=True)
-
+    employee = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE)
 
     def save(self, *args, **kwargs):
@@ -125,12 +135,14 @@ class Product(models.Model):
 
                 if old_value != new_value:
                     # Create an audit log entry for each changed field
+                    # user = User.objects.get(id=)
                     AuditLog.objects.create(
                         content_object=self,
                         field_name=field_name,
                         old_value=str(old_value),
                         new_value=str(new_value),
-                        modified_date=datetime.now()
+                        modified_date=datetime.now(),
+                        omni_employee=self.employee.id
                     )
 
         super().save(*args, **kwargs)
@@ -157,6 +169,18 @@ class Product(models.Model):
         # days_remaining = datetime(*expiry_converted).date() - today
         # days_remaining_str = str(days_remaining).split(",", 1)[0]
         return time_remaining
+
+
+class Procedure(models.Model):
+    procedure = models.CharField(max_length=300, blank=False, null=False)
+    patient = models.CharField(max_length=300, blank=False, null=False)
+    date_performed = models.DateTimeField(auto_now=True)
+    # products_used = models.ManyToManyField(Product)
+    products_used = models.CharField(max_length=300, blank=True, null=True)
+    # CHOICES = [("1", "Add to Inventory"), ("2", "Delete from Inventory")]
+    # choice_field = models.CharField(max_length=1, choices=CHOICES)
+
+
 
 """
 

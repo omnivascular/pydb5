@@ -1,7 +1,11 @@
-from django.urls import path, re_path
+from django.urls import path, re_path, include
+from django.contrib import admin
 from . import views
 
 urlpatterns = [
+    path('admin/', admin.site.urls),
+    path('users/', include('django.contrib.auth.urls')),
+    path('users/', include('users.urls')),
     path("products", views.all_products, name="all-products"),
     path("vendors", views.all_vendors, name="all-vendors"),
     path(
@@ -20,4 +24,9 @@ urlpatterns = [
     path('add_product/', views.add_product, name='add_product'),
     path('home', views.home, name='home'),
     path('expiring_products/', views.expiry_check_all_products, name='expiry_check_all_products'),
+    path('procedure/', views.procedure, name='procedure'),
 ]
+
+admin.site.header = "Omni Vascular Inventory Management"
+admin.site.site_title = "Browser Title"
+admin.site.index_title = "Welcome to Omni IT!"

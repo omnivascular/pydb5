@@ -1,24 +1,125 @@
 {% extends 'pydb4/base.html' %}
-
-
+{% load custom_filters %}
 
 {% block content %}
 
 
 
 
+<!-- <h1>Inventory Barcode Management</h1>
+
+<form id="myForm" action="" method="POST" enctype="multipart/form-data">
+{% csrf_token %}
+    {{ form.as_p }} 
+
+  <p><label for="barcodes">Items to be Updated:</label></p>
+
+  <textarea id="barcodes" name="barcodes" rows="4" cols="50" placeholder="Scan barcodes here:"></textarea>
+  <br><br>
+
+  <p><label>Select Action:</label></p>
+  <div>
+    <input type="radio" id="addInventory" name="action" value="add" required>
+    <label for="addInventory">Add to inventory</label>
+  </div>
+  <br>
+  <div>
+    <input type="radio" id="deleteInventory" name="action" value="delete" required>
+    <label for="deleteInventory">Delete from inventory</label>
+  </div>
+<br><br>
+  <input type="submit" value="Submit" class="btn btn-secondary">
+  <input type="button" value="Cancel" class="btn btn-secondary" onclick="location.href='{% url 'home' %}'">
+
+</form>
+
+ -->
+
+{% if user.is_authenticated %}
+    <h1>Procedure Update</h1>
+<br/><br/>
+
+<!-- ID: {{user.id}} -->
+
+
+        <form action="{% url 'procedure' %}" id="myForm" method="POST" enctype="multipart/form-data" style="display: inline-block; float: left; clear: left; width: auto; text-align: left;">
+            {% csrf_token %}
+
+            {{ form.as_p }}
+
+            <input type="submit" value="Submit" onclick="confirmFormSubmission(event)" class="btn btn-secondary">
+            <button class="btn btn-secondary" onclick="redirectToPage('{% url 'all-products' %}')">Back to List of Products</button>
+
+        </form>
+
+<!-- {% if form.errors %}
+  <ul class="errorlist">
+    {% for field in form %}
+      {% if field.errors %}
+        <li>{{ field.label }}:
+          <ul>
+            {% for error in field.errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          </ul>
+        </li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+{% endif %} -->
+    
+
+<br/><br/>  
+
+{% else %}
+<h1>Sorry, you must be logged in to view this page!</h1>
+
+<a href="{% url 'login' %}">Login Here</a>
+<button class="btn btn-secondary" onclick="goBack()">Go Back</button>
+{% endif %}
 
 
 
 
+<script>
+
+ 
+ function confirmFormSubmission(event) {
+  event.preventDefault(); // Prevent default form submission
+
+  var action = document.querySelector('input[name="choice_field"]:checked');
+  if (!action) {
+     alert('Please select an action!');
+     console.log('not selected yet')
+    return;
+  }else{
+
+  var confirmationMessage;
+  if (action.value === '1') {
+    confirmationMessage = 'Please confirm you wish to ADD items to the inventory?';
+  } else if (action.value === '2') {
+    confirmationMessage = 'Please confirm you wish to DELETE items from the inventory?';
+  }
+
+  var isConfirmed = confirm(confirmationMessage);
+
+  if (isConfirmed) {
+    // User confirmed, proceed with form submission
+    console.log('confirmed for submit')
+    document.getElementById('myForm').submit();
+  } else {
+  	console.log('cancelled or back to page')
+    // User canceled, do not submit the form
+    // You can perform additional actions here if needed
+  }
 
 
+}
 
 
+}
 
-
-
-
+</script>
 
 
 

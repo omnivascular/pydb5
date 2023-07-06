@@ -6,7 +6,14 @@
 
 <div>
 {% if searched %}
-        Search results for "{{ searched }}":
+        {% if multiple == ',' %} Operator used: "," = only results that include each term at least once 
+        {% elif multiple == ';' %} Operator used: ";" = only results that include all terms together 
+        <br>
+        You searched for: <ul>{% for s in searched %} <li>"{{ s }}"</li> {% endfor %}</ul>
+        {% elif multiple == '' %}
+        You searched for: <ul><li>"{{searched}}"</li></ul>
+        {% endif %} 
+        Number of results: {{products|length}}
         <button onclick="openModal({{ products.0.vendor_id }})">View Vendor Products</button>
 
     <!-- Modal -->
@@ -48,6 +55,7 @@ function myScrollFunction() {
                 <li>Quantity on hand: {{ p.quantity_on_hand }}</li>
                 <li>Last modified: {{ p.last_modified}}</li>
                 <li>Reference ID: {{ p.reference_id }}</li>
+                <li>Reference ID + Expiry Date: {{ p.ref_id_expiry_date }}</li>
                 <li>Vendor: {{ p.vendor.name }}</li>
                 </div>
                 </ul>

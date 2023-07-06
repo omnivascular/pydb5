@@ -2,10 +2,34 @@
 {% include 'pydb4/messages.html' %}
 
 {% block content %}
+{% if user.is_authenticated %}
+
+<label hidden>To do for self: add feature which allows specifying which users allowed to perform certain
+    operations, such as edit or update etc. 
+    Logic is as follows:
+
+
+    {% if user == event.manager %}
+    {% else %}
+    only event's manager can update this event..
+    {% endif %}
+
+
+    essentially done by creating new attribute/class in pydb4/models.py, OmniEmployee or OmniUser, so what 
+    is allowed is restricted to those entities already present (need to equate this class with django's
+    inherent User model for authentication, link them)
+
+    {{user}} -> allows accessing attributes of who is logged in.
+
+    can also make buttons disappear, depending on who is logged in or not, by using same user.is_authenticated django logic in the html of wherever button is, even if its in product list (some could disappear depending if needed)
+     </label>
+
 
 <center>
     <h1>Updating: <br/> {{ product.name }}</h1>
 </center>
+<p>Logged in User: {{user}}</p>
+<br>
 <br/>
 
 <p>Confirm quantity:</p>
@@ -29,7 +53,7 @@
     {% endfor %}
     <br/>
     <input type="submit" value="Update" class="btn btn-secondary"> 
-    <button class="btn btn-secondary" onclick="goBack()" >Cancel</button>
+    <input type="button" value="Cancel" class="btn btn-secondary" onclick="location.href='{% url 'home' %}'">
 <script>
 $(document).ready(function() {
   // Function to increment the value
@@ -51,6 +75,11 @@ $(document).ready(function() {
 </script>
 </form>
 <br/>
+{% else %}
+<h1>Sorry, you must be logged in to view this page!</h1>
 
+<a href="{% url 'login' %}">Login Here</a>
+<input type="button" value="Cancel" class="btn btn-secondary" onclick="location.href='{% url 'home' %}'">
+{% endif %}
 
 {% endblock %} 

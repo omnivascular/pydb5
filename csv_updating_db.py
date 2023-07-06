@@ -14,7 +14,8 @@ from django.db.models import Q
 
 # settings.configure()
 
-file = r"C:\Users\omniv\OneDrive\Documents\pydb4\pydb\inventory.csv"
+# file = r"C:\Users\omniv\OneDrive\Documents\pydb4\pydb\inventory.csv"
+file = r"C:\Users\omniv\OneDrive\Documents\pydb4\pydb\inventory-barcodes.csv"
 
 vendor_details = {
     1: ["Boston Scientific", "BSCI"],
