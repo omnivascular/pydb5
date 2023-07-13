@@ -36,12 +36,12 @@ class CleanedTextAreaField(ModelMultipleChoiceField):
 class ProcedureForm(ModelForm):
 	class Meta:
 		model = Procedure
-		fields = ('procedure', 'patient', 'products_used', 'choice_field')
+		fields = ('procedure', 'patient', 'products_used')
 		labels = {
 		'procedure': "Procedure performed:",
 		'patient': "Patient performed upon:",
 		'products_used': "Products used in procedure:",
-		'choice_field': "Select action to perform on items input:",
+		# 'choice_field': "Select action to perform on items input:",
 		}
 
 		widgets = {
@@ -50,17 +50,17 @@ class ProcedureForm(ModelForm):
 		'products_used': forms.Textarea(attrs={'cols': 100, 'class':'form-control', 'placeholder':'Scan each barcode of product used in procedure:'}),
 
 		}
-	CHOICES = [("1", "Add to Inventory"), ("2", "Delete from Inventory")]
-	choice_field = forms.ChoiceField(widget=forms.RadioSelect(attrs={"required": True}), choices=CHOICES)
+	# CHOICES = [("1", "Add to Inventory"), ("2", "Delete from Inventory")]
+	# choice_field = forms.ChoiceField(widget=forms.RadioSelect(attrs={"required": True}), choices=CHOICES)
 	# products_used = CleanedTextAreaField(required=True, queryset=Product.objects.filter(), to_field_name='barcode')
 	# products_used = forms.CharField(widget=forms.Textarea, attrs={'class':'form-control', 'placeholder':'Patient:'})
-	def clean_products_used(self):
-		product_codes = self.cleaned_data.get('products_used')
-		if product_codes:
-		    product_codes_list = [code.strip() for code in product_codes.split('\r\n')]
-		    print(product_codes_list)
-		    return product_codes_list
-		return []
+	# def clean_products_used(self):
+	# 	product_codes = self.cleaned_data.get('products_used')
+	# 	if product_codes:
+	# 	    product_codes_list = [code.strip() for code in product_codes.split('\r\n')]
+	# 	    print(product_codes_list)
+	# 	    return product_codes_list
+	# 	return []
 
 	# def clean(self):
 	# 	cleaned_data = super().clean()
@@ -76,13 +76,14 @@ class ProcedureForm(ModelForm):
 class ProductForm(ModelForm):
 	class Meta:
 		model = Product
-		fields = ('name', 'reference_id', 'expiry_date', 'size', 'quantity_on_hand', 'vendor')
+		fields = ('name', 'reference_id', 'expiry_date', 'size', 'quantity_on_hand', 'barcode', 'vendor')
 		labels = {
 		'name': 'Product Name:',
 		'reference_id': 'Reference ID:',
 		'expiry_date': 'Expiration Date:',
 		'size': 'Size:',
 		'quantity_on_hand': 'Quantity currently on hand:',
+		'barcode': 'Barcode:',
 		'vendor': 'Vendor ID:',		
 		}
 		widgets = {
@@ -100,6 +101,7 @@ class ProductForm(ModelForm):
 			        'id': 'id_quantity_on_hand',
 			    },
 			),
+			'barcode': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Product barcode'}),
 
 			'vendor': forms.Select(attrs={'class':'form-select', 'placeholder':'Vendor'}),
 		}

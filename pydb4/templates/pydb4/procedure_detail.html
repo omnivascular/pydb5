@@ -1,0 +1,51 @@
+
+{% extends 'pydb4/base.html' %} 
+{% load static %} 
+
+
+{% block content %} 
+
+
+
+{% if submitted %}
+  <center>Your Procedure was added successfully!</center>
+{% endif %}
+
+<br>
+{% if user.is_authenticated %}
+
+<h1>{{ procedure }}</h1>
+<br/>
+<u>Patient Name:</u>
+<br>
+{{procedure.patient.title}}
+<br>
+<br>
+<u>Procedure Date:</u> 
+<br>
+{{procedure.date_performed.date}}
+<br>
+<br>
+<u>Barcode --- Name of each item used in this procedure:</u>
+<br>
+    {% for p in products %}
+      {% if p.barcode in barcodes %}
+      <li>{{p.barcode}} --- <a href="{% url 'product_detail' p.id %}">{{p.name}}</a></li>
+      {% endif %}
+    {% endfor %}
+
+<br>
+
+<script src="{% static 'pydb4/script.js' %}"></script>
+
+{% else %}
+<h2>Sorry you must be authorized to view procedure details!</h2>
+{% endif %}
+
+
+<button class="btn btn-secondary" onclick="goBack()">Go Back</button>
+
+{% endblock %}
+
+
+

@@ -6,7 +6,7 @@ from datetime import datetime
 import json
 from .forms import ProductForm, ProcedureForm
 from .forms import UneditableProductForm
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, HttpResponseNotAllowed
 from django.urls import reverse
 from django.contrib import messages
 from calendar import HTMLCalendar
@@ -196,27 +196,35 @@ def expiry_check_all_products(request):
             results.append(x)
     return render(request, 'pydb4/expiry_check.html', {"results": results})
 
+# def verify_products(request):
+#     submitted = False
+#     if request.method == "POST":
+#         print('got to here, line 201 in views.py')
+#         pattern = r"\r\n|\n|,"  # Regular expression pattern to match "\r\n" or "\n"
+#         barcodes_used = re.split(pattern, request.POST.get('products_used', ''))
+#         queries = [Q(barcode__icontains=term) for term in barcodes_used if term != '']
+#         search_query = construct_search_query(queries)
+#         results = Product.objects.filter(search_query).order_by('expiry_date')
+
+#     print('got to here, line 209 in views.py')
+#     return HttpResponseNotAllowed(['POST'])
+
 def procedure(request):
     submitted = False
     if request.method == "POST":
         print("POST here")
         form = ProcedureForm(request.POST)
-        # major edits to do here = need to have product objects either prepared or already passed
         pattern = r"\r\n|\n|,"  # Regular expression pattern to match "\r\n" or "\n"
-        # result = re.split(pattern, string)
         barcodes_used = re.split(pattern, request.POST.get('products_used'))
-        # barcodes_used = request.POST.get('products_used').split(',')
         # products = list(set([Product.objects.filter(barcode__exact=b) for b in barcodes_used]))
-        # barcodes_used = products_used.split(',')
-        queries = [Q(barcode__icontains=term) for term in barcodes_used]
+        barcodes_exist = all(list(set([Product.objects.filter(barcode__exact=b).exists() for b in barcodes_used if b != ''])))
+        # if barcodes_exist:
+        # need to add logic for item barcodes that don't exist yet (could then show popup of add_product page)
+        queries = [Q(barcode__icontains=term) for term in barcodes_used if term != '']
         search_query = construct_search_query(queries)
         results = Product.objects.filter(search_query).order_by('expiry_date')
         print('length of results queryset:')
         print(len(results))
-        for r in results:
-            print(f"{r.name}-{r.expiry_date}")
-        # print(products)
-        # print(len(products))
         print('.items: ', request.POST.items)
         print('original products used field: ', barcodes_used)
         # print('processed products used field', products_used)
@@ -225,19 +233,37 @@ def procedure(request):
         if form.is_valid():
             print(type(form))
             print('it is valid')
-
-            form.save()
+            procedure = form.save(commit=False)
+            try: 
+                print('For adding procedure, User ID: ', request.user.id)
+                procedure.employee = User.objects.get(pk=request.user.id) #logged in user
+                procedure.products_used = barcodes_used
+                if results:
+                    print('showing len, type, and results object itself:')
+                    print(len(results), type(results), results)
+                    for r in results:
+                        print(f"Removing one of this item from inventory: {r.name}-{r.expiry_date}")
+                        print(f"Old quant: {r.quantity_on_hand}")
+                        r.quantity_on_hand -= 1
+                        print(f"New quant: {r.quantity_on_hand}")
+                        r.save()
+                        print(f'saved {r}')
+                # product.employee = request.user.id
+                procedure.save()
+            except:
+                traceback.print_exc()
             submitted = True
-            return render(request, 'pydb4/product_list.html', {'product_list': results})
+            return render(request, 'pydb4/procedure_detail.html', {'procedure': procedure, 'submitted': submitted, 'barcodes': barcodes_used, 'products': results})
         else:
-            print(form.is_valid())
-            print(form.errors)
-            print('sorry not authorized, get away.')
-            return render(request, 'pydb4/procedure_event.html', {'form': form})    
+            print(procedure.is_valid())
+            print(procedure.errors)
+            print('sorry form not correct, try again.')
+            return render(request, 'pydb4/procedure_event.html', {'procedure': procedure})    
     else:
         form = ProcedureForm()
-        print('GET here', request)
-        return render(request, 'pydb4/procedure_event.html', {'form': form})
+        print('GET here')
+        return render(request, 'pydb4/procedure_event.html', {'form': form, 'submitted': submitted})
+
 
 # @cache_control(no_cache=True, must_revalidate=True)
 def add_product(request):

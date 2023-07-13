@@ -73,16 +73,46 @@ def test_format(date_str):
 
 search = "2023-10-09"
 search2 = "10-09-2023"
-
-
 res = convert_date_to_search_format(search)
-
 print(type(res))
 
+barcodes_used = ["987654", "987652"]
+
+products = all(
+    list(
+        set(
+            [
+                Product.objects.filter(barcode__exact=b).exists()
+                for b in barcodes_used
+                if b != ""
+            ]
+        )
+    )
+)
+# finding = all(products)
+print(products)
+
+testing = [1, 2, 3]
+t_set = set(testing)
+if not t_set.add(3):
+    print("it is already there")
+else:
+    print("it is not there")
+
 products = Product.objects.all()
-for p in products:
-    if p.quantity_on_hand == 0:
-        print("this one is done", p.name)
+
+print("at len of products.distcint() ---->")
+print(len(products.distinct()))
+print(products.distinct().values("barcode", "expiry_date").count())
+print(products.count())
+
+
+file_barcodes_latest = r"C:\Users\omniv\Downloads\inventory-update-07052023.csv"
+
+
+# for p in products:
+#     if p.quantity_on_hand == 0:
+#         print("this one is done", p.name)
 #     if "used" in p.barcode or "expired" in p.barcode:
 #         print(p, p.name)
 #         p.delete()
@@ -126,7 +156,7 @@ for p in products:
 #             print("it doesnt exist bro")
 #             break
 
-# with open(file_barcodes, "r", encoding="utf-8", newline="") as f:
+# with open(file_barcodes_latest, "r", encoding="utf-8", newline="") as f:
 #     reader = csv.DictReader(f)
 #     for index, row in enumerate(reader, start=1):
 #         for row in reader:
@@ -139,25 +169,25 @@ for p in products:
 #             quantity = row["quantity"].strip()
 #             barcode = row["barcode"].strip()
 #             row_number = index
-# print("---------------------here >>", index)
-# obj, created = Product.objects.update_or_create(
-#     expiry_date__icontains=test_format(expiry).date(),
-#     reference_id__icontains=ref,
-#     defaults={
-#         "name": product,
-#         "reference_id": ref,
-#         "expiry_date": test_format(expiry),
-#         "size": size,
-#         "barcode": barcode,
-#         "employee": User.objects.get(id=1),
-#         "vendor": Vendor.objects.get(name__icontains=company),
-#         "quantity_on_hand": quantity,
-#     },
-# )
-# if created:
-#     print(f"{obj.name} created.")
-# else:
-#     print(f"{obj.name} updated.")
+#             # print("---------------------here >>", index)
+#             obj, created = Product.objects.update_or_create(
+#                 expiry_date__icontains=test_format(expiry).date(),
+#                 reference_id__icontains=ref,
+#                 defaults={
+#                     "name": product,
+#                     "reference_id": ref,
+#                     "expiry_date": test_format(expiry),
+#                     "size": size,
+#                     "barcode": barcode,
+#                     "employee": User.objects.get(id=1),
+#                     "vendor": Vendor.objects.get(name__icontains=company),
+#                     "quantity_on_hand": quantity,
+#                 },
+#             )
+#             if created:
+#                 print(f"{obj.name} created.")
+#             else:
+#                 print(f"{obj.name} updated.")
 
 # print(row_number)
 # print(row)
@@ -189,41 +219,42 @@ if check.first():
 
 file_barcodes_2 = r"C:\Users\omniv\OneDrive\Documents\pydb4\pydb\inventory-barcodes-current-07052023.csv"
 
-with open(file_barcodes_2, "r", encoding="utf-8", newline="") as f:
-    reader = csv.DictReader(f)
-    for index, row in enumerate(reader, start=1):
-        for row in reader:
-            expiry = row["expiry_date"].strip()
-            ref = row["reference_id"].strip()
-            company = row["company"].strip()
-            product = row["product"].strip()
-            ref_id_expiry_date = f"{ref}***{expiry}"
-            size = row["size"].strip()
-            quantity = row["quantity"].strip()
-            barcode = row["barcode"].strip()
-            row_number = index
-            print("---------------------here >>", index)
-            p = Product.objects.filter(
-                expiry_date=test_format(expiry).date(), reference_id__icontains=ref
-            )
-            if not p.exists():
-                print(p.first().name)
 
-        # break
-        # obj, created = Product.objects.update_or_create(
-        #     expiry_date__icontains=test_format(expiry).date(),
-        #     reference_id__icontains=ref,
-        #     defaults={
-        #         "name": product,
-        #         "reference_id": ref,
-        #         "expiry_date": test_format(expiry),
-        #         "size": size,
-        #         "barcode": barcode,
-        #         "employee": User.objects.get(id=1),
-        #         "vendor": Vendor.objects.get(name__icontains=company),
-        #         "quantity_on_hand": quantity,
-        #     },
-        # )
+# with open(file_barcodes_2, "r", encoding="utf-8", newline="") as f:
+#     reader = csv.DictReader(f)
+#     for index, row in enumerate(reader, start=1):
+#         for row in reader:
+#             expiry = row["expiry_date"].strip()
+#             ref = row["reference_id"].strip()
+#             company = row["company"].strip()
+#             product = row["product"].strip()
+#             ref_id_expiry_date = f"{ref}***{expiry}"
+#             size = row["size"].strip()
+#             quantity = row["quantity"].strip()
+#             barcode = row["barcode"].strip()
+#             row_number = index
+#             print("---------------------here >>", index)
+#             p = Product.objects.filter(
+#                 expiry_date=test_format(expiry).date(), reference_id__icontains=ref
+#             )
+#             if not p.exists():
+#                 print(p.first().name)
+
+# break
+# obj, created = Product.objects.update_or_create(
+#     expiry_date__icontains=test_format(expiry).date(),
+#     reference_id__icontains=ref,
+#     defaults={
+#         "name": product,
+#         "reference_id": ref,
+#         "expiry_date": test_format(expiry),
+#         "size": size,
+#         "barcode": barcode,
+#         "employee": User.objects.get(id=1),
+#         "vendor": Vendor.objects.get(name__icontains=company),
+#         "quantity_on_hand": quantity,
+#     },
+# )
 
 # if 'used' or 'expired' or 'present' in barcodes or quantity
 

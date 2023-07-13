@@ -30,6 +30,8 @@ vendor_details = {
     4: ["COOK Medical", "COOK"],
     5: ["Terumo", "TRMO"],
     6: ["Coulmed", "COULMD"],
+    7: ["Medline", "MEDLNE"],
+    8: ["Bard Peripheral Vascular", "BARD"],
 }
 
 """
@@ -112,6 +114,7 @@ class Product(models.Model):
     reference_id = models.CharField(max_length=100)
     expiry_date = models.DateTimeField(auto_now=False, auto_now_add=False)
     ref_id_expiry_date = models.CharField(max_length=250, unique=True)
+    # barcode_ref_id_expiry_date = models.CharField(max_length=250, unique=True, default="N/A")
     is_purchased = models.BooleanField(default=True)
     size = models.CharField(max_length=60, default="N/A", blank=True)
     barcode = models.CharField(max_length=300, default="N/A", blank=True, null=True)
@@ -122,7 +125,8 @@ class Product(models.Model):
     vendor = models.ForeignKey(Vendor, on_delete=models.CASCADE)
 
     def save(self, *args, **kwargs):
-        self.ref_id_expiry_date = self.generate_combined_field()
+        self.ref_id_expiry_date = self.generate_ref_id_expiry_field()
+        # self.barcode_ref_id_expiry_date = self.generate_barcode_ref_id_expiry_field()
         if self.pk:
             # Retrieve the existing object from the database
             old_instance = Product.objects.get(pk=self.pk)
@@ -147,11 +151,14 @@ class Product(models.Model):
 
         super().save(*args, **kwargs)
 
-    def generate_combined_field(self):
+    def generate_ref_id_expiry_field(self):
         return f"{self.reference_id}***{self.expiry_date.date()}"
 
+    # def generate_barcode_ref_id_expiry_field(self):
+    #     return f"{self.barcode}***{self.reference_id}***{self.expiry_date.date()}"
+
     class Meta:
-        unique_together = ("reference_id", "expiry_date")
+        unique_together = ("reference_id", "expiry_date", "barcode")
         # ordering = ["name"]
         ordering = ["expiry_date"]
         indexes = [models.Index(fields=["ref_id_expiry_date", "name"])]
@@ -176,9 +183,17 @@ class Procedure(models.Model):
     patient = models.CharField(max_length=300, blank=False, null=False)
     date_performed = models.DateTimeField(auto_now=True)
     # products_used = models.ManyToManyField(Product)
-    products_used = models.CharField(max_length=300, blank=True, null=True)
+    products_used = models.CharField(max_length=300, blank=False, null=False)
+    employee = models.ForeignKey(User, blank=True, null=True, on_delete=models.SET_NULL)
     # CHOICES = [("1", "Add to Inventory"), ("2", "Delete from Inventory")]
     # choice_field = models.CharField(max_length=1, choices=CHOICES)
+    class Meta:
+        unique_together = ("patient", "date_performed")
+        ordering = ["date_performed"]
+        indexes = [models.Index(fields=["patient", "procedure"])]
+
+    def __str__(self) -> str:
+        return self.procedure
 
 
 

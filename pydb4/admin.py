@@ -13,7 +13,7 @@ class ProductAdmin(admin.ModelAdmin):
 	list_filter = ('expiry_date', )
 	fields = (('name', 'size', 'quantity_on_hand', 'expiry_date'), ('vendor', 'is_purchased', 'barcode'), 'ref_id_expiry_date')
 	ordering = ('name',)
-	search_fields = ('name', 'reference_id')
+	search_fields = ('name', 'reference_id', 'barcode')
 
 
 @admin.register(Vendor)
