@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .models import Product, Vendor, vendor_details, AuditLog
+from .models import Product, Vendor, vendor_details, AuditLog, Procedure
 from django.contrib.auth.models import User
 from django.db.models import Q
 from datetime import datetime
@@ -46,6 +46,14 @@ def all_vendors(request):
         request,
         "pydb4/vendor_list.html",
         {"vendor_list": vendor_list},
+    )
+
+def all_procedures(request):
+    procedure_list = Procedure.objects.all()
+    return render(
+        request,
+        "pydb4/procedure_list.html",
+        {"procedure_list": procedure_list},
     )
 
 def all_vendor_products(request, vendor_id):
@@ -217,6 +225,10 @@ def procedure(request):
         pattern = r"\r\n|\n|,"  # Regular expression pattern to match "\r\n" or "\n"
         barcodes_used = re.split(pattern, request.POST.get('products_used'))
         # products = list(set([Product.objects.filter(barcode__exact=b) for b in barcodes_used]))
+        isolated_barcodes = set()
+        uniques = [x for x in barcodes_used if x not in isolated_barcodes and not isolated_barcodes.add(x)]  
+        duplicates = [x for x in barcodes_used]
+
         barcodes_exist = all(list(set([Product.objects.filter(barcode__exact=b).exists() for b in barcodes_used if b != ''])))
         # if barcodes_exist:
         # need to add logic for item barcodes that don't exist yet (could then show popup of add_product page)

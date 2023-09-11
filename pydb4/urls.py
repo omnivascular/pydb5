@@ -8,6 +8,7 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path("products", views.all_products, name="all-products"),
     path("vendors", views.all_vendors, name="all-vendors"),
+    path("procedures", views.all_procedures, name="all-procedures"),
     path(
         "vendors/<int:vendor_id>/",
         views.all_vendor_products,

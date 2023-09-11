@@ -179,6 +179,12 @@ class Product(models.Model):
 
 
 class Procedure(models.Model):
+    # id = models.BigAutoField(
+    #     auto_created=True,
+    #     primary_key=True,
+    #     unique=True,
+    #     serialize=False,
+    #     verbose_name="Procedure ID",)
     procedure = models.CharField(max_length=300, blank=False, null=False)
     patient = models.CharField(max_length=300, blank=False, null=False)
     date_performed = models.DateTimeField(auto_now=True)

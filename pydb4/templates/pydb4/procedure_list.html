@@ -1,0 +1,24 @@
+{% extends 'pydb4/base.html' %}
+
+{% block content %}
+
+<h1>List of Procedures</h1>
+<br/>
+
+{% for p in procedure_list %}
+<div class="product card">
+    <div class="card-body">
+<strong><a href="{% url 'all-procedures' %}">{{p}}</a></strong>
+</div>
+<ul>
+    <li>Procedure name: {{ p.procedure }}</li>
+    <li>Patient: {{ p.patient }}</li>
+    <li>Date performed:  {{ p.date_performed }}</li>
+    <li>Products used: {{p.products_used}}</li>
+<!--     <li>Reference ID: {{ p.reference_id }}</li>
+    <li>Vendor: {{ p.vendor.name }}</li> -->
+    
+</ul>
+</div>
+{% endfor %}
+{% endblock %}
