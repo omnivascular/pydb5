@@ -6,32 +6,66 @@
       </button>
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+
+
+          {% if user.is_authenticated %}
           <li class="nav-item">
             <a class="nav-link" href="{% url 'all-vendors' %}">Vendors</a>
           </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'all-products' %}">Products</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'add_product' %}">Add Product</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'procedure' %}">Add Procedure</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'all-procedures' %}">Procedures Performed</a>
-          </li>           
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'expiry_check_all_products' %}">Expiring Products (< 3 months)</a>
-          </li>
-          {% if user.is_authenticated %}
+
+
+          
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" role="button"  id="dropdownMenuButton2" data-bs-toggle="dropdown" aria-expanded="false">
+            Products
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton2">
+            <li><a class="dropdown-item" href="{% url 'all-products' %}">List of All Products</a></li>
+ 
+            <li><a class="dropdown-item" href="{% url 'add_product' %}">Add New Product</a></li>
+
+            <li><a class="dropdown-item" href="#">Order New Product (Purchase Order)</a></li>
+          </ul>
+        </li>
+
+
+       <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" role="button"  id="dropdownMenuButton3" data-bs-toggle="dropdown" aria-expanded="false">
+            Procedures
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton3">
+            <li><a class="dropdown-item" href="{% url 'all-procedures' %}">List of All Procedures Performed</a></li>
+ 
+            <li><a class="dropdown-item" href="{% url 'procedure' %}">Add New Procedure</a></li>
+          </ul>
+        </li>
+
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" role="button"  id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+            Product Reports
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+            <li><a class="dropdown-item" href="{% url 'expiry_check_products_by_month' month_number=1 %}">Products Expiring within 1 month</a></li>
+ 
+            <li><a class="dropdown-item" href="{% url 'expiry_check_products_by_month' month_number=3 %}">Products Expiring within 3 months</a></li>
+
+            <li><a class="dropdown-item" href="{% url 'expiry_check_products_by_month' month_number=6 %}">Products Expiring within 6 months</a></li>
+          </ul>
+        </li>
+
+          
           <li class="nav-item">
             <a class="nav-link" href="{% url 'logout' %}">Logout</a>
           </li>
-          {% else %}
+          
+
+
+
           <li class="nav-item">
-            <a class="nav-link" href="{% url 'register_user' %}">Register</a>
+            <a class="nav-link" href="{% url 'register_user' %}">Register a New User</a>
           </li>
+          {% else %}
           <li class="nav-item">
             <a class="nav-link" href="{% url 'login' %}">Login</a>
           </li>

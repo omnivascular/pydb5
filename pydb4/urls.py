@@ -24,7 +24,7 @@ urlpatterns = [
     path("update_product/<int:product_id>/", views.update_product, name="update_product"),
     path('add_product/', views.add_product, name='add_product'),
     path('home', views.home, name='home'),
-    path('expiring_products/', views.expiry_check_all_products, name='expiry_check_all_products'),
+    path('expiring_products/in-<int:month_number>-months/', views.expiry_check_products_by_month, name='expiry_check_products_by_month'),
     path('procedure/', views.procedure, name='procedure'),
 ]
 

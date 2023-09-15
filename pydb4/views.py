@@ -194,15 +194,24 @@ def update_product(request, product_id):
     return render(request, 'pydb4/update_product.html', {"product": product, "form": form, "readonly_fields": readonly_fields})
 
 # @cache_control(no_cache=True, must_revalidate=True)
-def expiry_check_all_products(request):
+def expiry_check_products_by_month(request, month_number):
     products = Product.objects.all()
     results = []
     for x in products:
         datecheck = x.days_until_expiry
-        if datecheck.years == 0 and datecheck.months < 3:
-            print(x.name, x.size, x.expiry_date.date())
-            results.append(x)
-    return render(request, 'pydb4/expiry_check.html', {"results": results})
+        if month_number == 1:
+            if datecheck.years == 0 and datecheck.months <= 1:
+                print(x.name, x.size, x.expiry_date.date())
+                results.append(x)        
+        if month_number == 3:
+            if datecheck.years == 0 and datecheck.months <= 3:
+                print(x.name, x.size, x.expiry_date.date())
+                results.append(x)
+        if month_number == 6:
+            if datecheck.years == 0 and datecheck.months <= 6:
+                print(x.name, x.size, x.expiry_date.date())
+                results.append(x)
+    return render(request, 'pydb4/expiry_check.html', {"results": results, "month_number": month_number})
 
 # def verify_products(request):
 #     submitted = False

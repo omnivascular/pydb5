@@ -3,7 +3,9 @@
 {% block content %}
 
 <div>
-        All currently stocked items with expiration date of 3 months or less (negative if expired) :
+    <center>
+        <h3>Total of {{results|length}} Items with expiration date of {{month_number}} months or less:</h3>
+         (negative if expired)</center>
         <div>
             
             {% for p in results %}
