@@ -5,6 +5,21 @@
 <h1>List of Products</h1>
 <br/>
 
+             <button class="btn btn-secondary" type="submit" onclick="" id='mybtn2'>Update Current Inventory from Sheets API</button>
+
+
+<script type="text/javascript">
+    const mybtn2text = document.getElementById("mybtn2");
+
+mybtn2text.addEventListener("click", function() {
+  mybtn2text.textContent = "inventory has been updated via Google Sheets API!";
+  location.href='{% url 'update-inventory' %}';    
+});
+
+
+</script>
+
+
 {% for p in product_list %}
 <div class="product card">
     <div class="card-body">

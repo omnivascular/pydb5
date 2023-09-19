@@ -1,10 +1,10 @@
 from django.shortcuts import render, redirect
-from .models import Product, Vendor, vendor_details, AuditLog, Procedure
+from .models import Product, Vendor, vendor_list_current, finding_vendor, adding_new_vendor_to_csv, AuditLog, Procedure
 from django.contrib.auth.models import User
 from django.db.models import Q
 from datetime import datetime
 import json
-from .forms import ProductForm, ProcedureForm
+from .forms import ProductForm, ProcedureForm, VendorForm
 from .forms import UneditableProductForm
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse, HttpResponseNotAllowed
 from django.urls import reverse
@@ -16,6 +16,7 @@ from django.views.decorators.cache import cache_control
 import traceback
 import qrcode as qr
 import re
+from .db_api_sync_sec import csv_from_api_current_inventory, db_new_from_products_csv
 
 
 def construct_search_query_alternate(queries):
@@ -47,6 +48,28 @@ def all_vendors(request):
         "pydb4/vendor_list.html",
         {"vendor_list": vendor_list},
     )
+
+
+def database_update_current_inventory(request):
+    try:
+        db_new_from_products_csv(csv_from_api_current_inventory())
+        product_list = Product.objects.all()
+        messages.success(request, "Current inventory updated successfully from CSV!")
+        return render(
+            request,
+            "pydb4/product_list.html",
+            {"product_list": product_list},
+        )
+    except Exception as e:
+        traceback.print_exc()
+        messages.success(request, "Error with updating current inventory, please see stack trace and IT admin.")
+        product_list = Product.objects.all()
+        return render(
+            request,
+            "pydb4/product_list.html",
+            {"product_list": product_list},
+        )
+
 
 def all_procedures(request):
     procedure_list = Procedure.objects.all()
@@ -204,11 +227,11 @@ def expiry_check_products_by_month(request, month_number):
                 print(x.name, x.size, x.expiry_date.date())
                 results.append(x)        
         if month_number == 3:
-            if datecheck.years == 0 and datecheck.months <= 3:
+            if datecheck.years == 0 and datecheck.months <= 3 and datecheck.months > 1:
                 print(x.name, x.size, x.expiry_date.date())
                 results.append(x)
         if month_number == 6:
-            if datecheck.years == 0 and datecheck.months <= 6:
+            if datecheck.years == 0 and datecheck.months <= 6 and datecheck.months > 3:
                 print(x.name, x.size, x.expiry_date.date())
                 results.append(x)
     return render(request, 'pydb4/expiry_check.html', {"results": results, "month_number": month_number})
@@ -313,6 +336,49 @@ def add_product(request):
         if 'submitted' in request.GET:
             submitted = True
         return render(request, 'pydb4/add_product.html', {'form':form, 'submitted':submitted})
+
+def add_vendor(request):
+    submitted = False
+    if request.method == "POST":
+        form = VendorForm(request.POST)
+        if finding_vendor(request.POST.get("id"), vendor_list_current()) is None:
+            if form.is_valid():
+                try:
+                    vendor = form.save(commit=False)
+                    print('Adding new vendor, Vendor ID: ', vendor.id)
+                    vendor.employee = User.objects.get(pk=request.user.id)  # logged in user
+                    adding_new_vendor_to_csv(name=vendor.name, abbrev=vendor.abbrev)
+                    traceback.print_exc()
+                    vendor.save() # issue is here, when vendor being saved to database --- why?
+                    messages.success(request, "Vendor added successfully.")
+                    submitted = True
+                    products = Product.objects.filter(vendor_id=vendor.id)
+                    return render(request, "pydb4/vendor_products.html", {"vendor": vendor, 'submitted': submitted, 'products': products})
+                except Exception as e:
+                    traceback.print_exc()
+                    print('An error occurred:', str(e))
+                    return HttpResponse("An error occurred while adding the vendor. Please try again later.")
+            else:
+                # Handle form validation errors here
+                print('Form errors here:', form.errors)
+                messages.success(request, f"Form validation failed. Please check the data you entered: \n All Vendor information must be unique (ID, Name, Abbreviation).")
+                vendor_list = Vendor.objects.all()
+                return render(
+                    request,
+                    "pydb4/vendor_list.html",
+                    {"vendor_list": vendor_list},
+                )
+        else:
+            vendor = Vendor.objects.get(pk=request.POST.get("id"))
+            messages.success(request, "Vendor already exists in records.")
+            products = Product.objects.filter(vendor_id=request.POST.get("id"))
+            return HttpResponseRedirect(reverse('all-vendor-products', args=[request.POST.get("id")]))  # Redirect to vendor detail page
+    else:
+        form = VendorForm()
+        if 'submitted' in request.GET:
+            submitted = True
+        return render(request, 'pydb4/add_vendor.html', {'form': form, 'submitted': submitted})
+
 
 # @cache_control(no_cache=True, must_revalidate=True)
 def home(request, year=datetime.now().year, month=datetime.now().strftime('%B')):

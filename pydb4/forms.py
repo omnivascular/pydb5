@@ -51,12 +51,30 @@ class ProcedureForm(ModelForm):
 
 		}
 
+class VendorForm(ModelForm):
+	class Meta:
+		model = Vendor
+		fields = ('id', 'name', 'abbrev')
+		labels = {
+		'id': "Vendor ID:",
+		'name': "Vendor Name:",
+		'abbrev': "Vendor Abbreviation:",
+		# 'choice_field': "Select action to perform on items input:",
+		}
+
+		widgets = {
+		'id': forms.NumberInput(attrs={'class':'form-control', 'placeholder':'Vendor ID:'}),
+		'vendor': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Vendor:'}),
+		'abbrev': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Vendor abbreviation:'}),
+
+		}
+
 
 # Product Form
 class ProductForm(ModelForm):
 	class Meta:
 		model = Product
-		fields = ('name', 'reference_id', 'expiry_date', 'size', 'quantity_on_hand', 'barcode', 'vendor')
+		fields = ('name', 'reference_id', 'expiry_date', 'size', 'quantity_on_hand', 'barcode', 'lot_number', 'vendor')
 		labels = {
 		'name': 'Product Name:',
 		'reference_id': 'Reference ID:',
@@ -64,6 +82,7 @@ class ProductForm(ModelForm):
 		'size': 'Size:',
 		'quantity_on_hand': 'Quantity currently on hand:',
 		'barcode': 'Barcode:',
+		'lot_number': 'Lot Number:',
 		'vendor': 'Vendor ID:',		
 		}
 		widgets = {
@@ -82,6 +101,7 @@ class ProductForm(ModelForm):
 			    },
 			),
 			'barcode': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Product barcode'}),
+			'lot_number': forms.TextInput(attrs={'class':'form-control', 'placeholder':'Product Lot Number'}),
 
 			'vendor': forms.Select(attrs={'class':'form-select', 'placeholder':'Vendor'}),
 		}

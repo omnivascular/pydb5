@@ -8,6 +8,7 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path("products", views.all_products, name="all-products"),
     path("vendors", views.all_vendors, name="all-vendors"),
+    path("inventory_update", views.database_update_current_inventory, name="update-inventory"),
     path("procedures", views.all_procedures, name="all-procedures"),
     path(
         "vendors/<int:vendor_id>/",
@@ -23,6 +24,7 @@ urlpatterns = [
     path("product_search", views.product_search, name="product_search"),
     path("update_product/<int:product_id>/", views.update_product, name="update_product"),
     path('add_product/', views.add_product, name='add_product'),
+    path('add_vendor/', views.add_vendor, name='add_vendor'),
     path('home', views.home, name='home'),
     path('expiring_products/in-<int:month_number>-months/', views.expiry_check_products_by_month, name='expiry_check_products_by_month'),
     path('procedure/', views.procedure, name='procedure'),

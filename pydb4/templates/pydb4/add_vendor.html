@@ -4,26 +4,23 @@
 {% block content %}
 
 {% if user.is_authenticated %}
-    <h1>Add Product</h1>
+    <h1>Add Vendor</h1>
 <br/><br/>
 
 <!-- ID: {{user.id}} -->
 
 {% if submitted %}
-        Your Product Was Submitted Successfully!
+        New Vendor Was Added Successfully!
 
     {% else %}
 
-        <form action="{% url 'add_product' %}" method="POST" enctype="multipart/form-data" style="display: inline-block; float: left; clear: left; width: auto; text-align: left;">
+        <form action="{% url 'add_vendor' %}" method="POST" enctype="multipart/form-data" style="display: inline-block; float: left; clear: left; width: auto; text-align: left;">
             {% csrf_token %}
 
             {{ form.as_p }}
 
             <input type="submit" value="Submit" class="btn btn-secondary">
-            <br/><br/>
-            <button class="btn btn-secondary" onclick="redirectToPage('{% url 'add_vendor' %}')">Add a New Vendor if not Listed</button>
-            <br/><br/>
-            <button class="btn btn-secondary" onclick="redirectToPage('{% url 'all-products' %}')">Back to List of Products</button>
+            <button class="btn btn-secondary" onclick="redirectToPage('{% url 'all-vendors' %}')">Back to List of Vendors</button>
 
         </form>
 

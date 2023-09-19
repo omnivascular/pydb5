@@ -9,6 +9,7 @@ from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import User
 import json
+import pandas as pd
 
 
 placeholder = ""
@@ -35,6 +36,14 @@ vendor_details = {
     8: ["Bard Peripheral Vascular", "BARD"],
 }
 
+
+def vendor_list_current():
+    file = r"vendors.csv"
+    data = pd.read_csv(file)
+    vendor_dict = data.to_dict(orient="records")
+    return vendor_dict
+
+
 """
 new vendor to add for venovo venous stent system:
 BD, Becton, Dickinson and Company
@@ -47,22 +56,47 @@ vendor_choices = [
 ]
 
 
-def listing_vendors():
+def finding_vendor(id, vendor_dict=vendor_list_current()):
+    for v in vendor_dict:
+        if int(id) == int(v["id"]):
+            print(v)
+            return v
+        else:
+            pass
+    print("need to add new vendor to vendors.csv as below")
+    return None
+
+def adding_new_vendor_to_csv(name, abbrev, vendor_dict=vendor_list_current()):
+    try:
+        df_new_vendor = pd.DataFrame(
+            {
+                "id": [len(vendor_dict) + 1],
+                "name": [name],
+                "abbrev": [abbrev],
+            }
+        )
+        df_new_vendor.to_csv('vendors.csv', mode='a', index=False, header=False)
+        print('added new vendor successfull.')
+        return True
+    except:
+        return False
+
+
+
+def listing_vendors(vendor_dict):
     print("Vendor ID  -  Vendor Name  -  Vendor Abbreviation")
-    for key, value in vendor_details.items():
-        print(f"{key}  -  {value[0]}  -  {value[1]}")
+    for v in vendor_dict:
+        print(f"{v['id']}  -  {v['name']}  -  {v['abbrev']}")
 
 
 class Vendor(models.Model):
-    id = models.CharField(
-        primary_key=True, unique=True, max_length=2, choices=vendor_choices
-    )
-    name = models.CharField(max_length=200)
-    abbrev = models.CharField(max_length=50)
+    id = models.CharField(primary_key=True, unique=True, max_length=5)
+    name = models.CharField(max_length=200, unique=True)
+    abbrev = models.CharField(max_length=50, unique=True)
     # url = models.URLField(max_length=200)
 
     def save(self, *args, **kwargs):
-        listing_vendors()
+        # listing_vendors(vendor_list_current())
         # if self.id in vendor_details:
         #     self.name, self.abbrev = vendor_details[self.id]
         # else:
@@ -73,6 +107,7 @@ class Vendor(models.Model):
 
     def __str__(self) -> str:
         return self.name
+
 
 class AuditLog(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)

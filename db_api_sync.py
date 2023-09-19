@@ -170,8 +170,11 @@ def db_new_from_products_csv(file):
     print("Database update complete, now based on current inventory.")
 
 
-db_new_from_products_csv(
-    r"C:\Users\omniv\OneDrive\Documents\pydb4\pydb\current-inventory-asof-09-14-2023--00_00_00.csv"
-)
+# db_new_from_products_csv(
+#     r"C:\Users\omniv\OneDrive\Documents\pydb4\pydb\current-inventory-asof-09-14-2023--00_00_00.csv"
+# )
 
-# print(Vendor.objects.all())
+#----- run below if need to update entire inventory based on CSV on sheets
+# db_new_from_products_csv(csv_from_api_current_inventory())
+
+
